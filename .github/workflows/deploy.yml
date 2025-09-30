@@ -36,7 +36,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           #username: ${{ github.actor }}
-          usernanem: rnignon
+          username: rnignon
           password: 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
           #password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish container image
