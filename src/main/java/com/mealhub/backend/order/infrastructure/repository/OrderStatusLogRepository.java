@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface OrderStatusLogRepository extends JpaRepository<OrderStatusLog, UUID> {
 
     // 특정 주문의 상태 로그 조회
-    List<OrderStatusLog> findByOrderInfo_OInfoIdOrderByCreatedAtDesc(UUID orderInfoId);
+    List<OrderStatusLog> findByOrderInfo_oInfoIdOrderByCreatedAtDesc(UUID oInfoId);
 }
