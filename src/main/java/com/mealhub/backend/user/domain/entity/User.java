@@ -3,12 +3,15 @@ package com.mealhub.backend.user.domain.entity;
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
+import com.mealhub.backend.user.presentation.dto.request.UserUpdateRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
-@Entity(name = "p_user")
+@Table(name = "p_user")
+@Entity
 @NoArgsConstructor
 @Getter
 public class User extends BaseAuditEntity {
@@ -58,5 +61,12 @@ public class User extends BaseAuditEntity {
                 request.getRole(),
                 request.getPhone()
         );
+    }
+
+    public void updateUser(UserUpdateRequest request, String encodedPassword) {
+        this.username = request.getUsername();
+        this.nickname = request.getNickname();
+        this.password = encodedPassword;
+        this.phone = request.getPhone();
     }
 }
