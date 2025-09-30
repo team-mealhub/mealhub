@@ -56,4 +56,24 @@ public class UserDetailsImpl implements UserDetails {
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
+    public static UserDetailsImpl from(User user) {
+        return new UserDetailsImpl(
+                user.getId(),
+                user.getUserId(),
+                user.getPassword(),
+                user.getRole()
+        );
+    }
+
+    public User toUser() {
+        User user = new User();
+
+        user.setId(this.id);
+        user.setUserId(this.userId);
+        user.setPassword(this.password);
+        user.setRole(this.role);
+
+        return user;
+    }
 }

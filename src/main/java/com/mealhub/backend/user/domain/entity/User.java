@@ -6,6 +6,7 @@ import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity(name = "p_user")
 @NoArgsConstructor
@@ -14,9 +15,11 @@ public class User extends BaseAuditEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "u_id")
+    @Setter
     private Long id;
 
     @Column(name = "u_user_id", nullable = false, unique = true, length = 100)
+    @Setter
     private String userId;
 
     @Column(name = "u_username", length = 100)
@@ -26,10 +29,12 @@ public class User extends BaseAuditEntity {
     private String nickname;
 
     @Column(name = "u_password", nullable = false)
+    @Setter
     private String password;
 
     @Column(name = "u_role", nullable = false, length = 100)
     @Enumerated(EnumType.STRING)
+    @Setter
     private UserRole role;
 
     @Column(name = "u_phone", length = 11)

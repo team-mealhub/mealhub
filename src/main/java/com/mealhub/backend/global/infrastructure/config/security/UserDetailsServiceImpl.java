@@ -21,6 +21,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         () -> new RuntimeException("Not Found User Temporary message")
                 );
 
-        return new UserDetailsImpl(user.getId(), user.getUserId(), user.getPassword(), user.getRole());
+        return UserDetailsImpl.from(user);
     }
 }
