@@ -1,4 +1,4 @@
-package com.mealhub.backend.global.infrastructure.config.security;
+package com.mealhub.backend.global.infrastructure.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
