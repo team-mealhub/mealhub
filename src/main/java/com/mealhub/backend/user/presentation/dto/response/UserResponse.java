@@ -2,9 +2,11 @@ package com.mealhub.backend.user.presentation.dto.response;
 
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Data
+@Getter
+@AllArgsConstructor
 public class UserResponse {
     private Long id;
     private String userId;

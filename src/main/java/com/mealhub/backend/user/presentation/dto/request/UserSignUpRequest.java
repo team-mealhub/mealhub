@@ -1,12 +1,13 @@
 package com.mealhub.backend.user.presentation.dto.request;
 
 import com.mealhub.backend.user.domain.enums.UserRole;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class UserSignUpRequest {
     private String userId;
