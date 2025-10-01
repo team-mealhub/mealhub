@@ -18,6 +18,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public UserResponse getUser(Long id) {
         User user = getUserById(id);
         return new UserResponse(user);
