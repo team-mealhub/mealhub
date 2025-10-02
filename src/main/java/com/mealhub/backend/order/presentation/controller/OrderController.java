@@ -7,6 +7,8 @@ import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
+import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
+import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +33,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final RestaurantRepository restaurantRepository;
 
     // 주문 생성
     @PostMapping
@@ -53,8 +57,7 @@ public class OrderController {
         Long currentUserId = UserDetailsImpl.extractUserId();
         UserRole userRole = UserDetailsImpl.extractUserRole();
 
-        // TODO: OWNER의 경우 restaurantId 추출 필요 (User-Restaurant 관계가 1:N이므로 별도 조회 또는 파라미터 필요)
-        UUID ownerRestaurantId = null;
+        UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
         OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole.name(), ownerRestaurantId);
         return ResponseEntity.ok(response);
@@ -75,8 +78,7 @@ public class OrderController {
         Long currentUserId = UserDetailsImpl.extractUserId();
         UserRole userRole = UserDetailsImpl.extractUserRole();
 
-        // TODO: OWNER의 경우 restaurantId 추출 필요 (User-Restaurant 관계가 1:N이므로 별도 조회 또는 파라미터 필요)
-        UUID ownerRestaurantId = null;
+        UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
         Page<OrderResponse> response = orderService.searchOrders(
                 uId, rId, status, from, to, pageable, currentUserId, userRole.name(), ownerRestaurantId
@@ -92,8 +94,10 @@ public class OrderController {
             @RequestBody OrderStatusUpdateRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // TODO: UserDetails에서 실제 restaurantId 추출 (현재는 임시)
-        UUID ownerRestaurantId = null;  // OWNER의 가게 ID 필요
+        Long currentUserId = UserDetailsImpl.extractUserId();
+        UserRole userRole = UserDetailsImpl.extractUserRole();
+
+        UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
         OrderResponse response = orderService.updateOrderStatus(orderId, request, ownerRestaurantId);
         return ResponseEntity.ok(response);
@@ -122,10 +126,26 @@ public class OrderController {
         Long currentUserId = UserDetailsImpl.extractUserId();
         UserRole userRole = UserDetailsImpl.extractUserRole();
 
-        // TODO: OWNER의 경우 restaurantId 추출 필요 (User-Restaurant 관계가 1:N이므로 별도 조회 또는 파라미터 필요)
-        UUID ownerRestaurantId = null;
+        UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
         orderService.deleteOrder(orderId, currentUserId, userRole.name(), ownerRestaurantId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Extract restaurant ID for OWNER role
+     * Returns the first restaurant owned by the user, or null if not OWNER or no restaurants
+     *
+     * @param userId the user ID
+     * @param userRole the user role
+     * @return restaurant ID or null
+     */
+    private UUID extractOwnerRestaurantId(Long userId, UserRole userRole) {
+        if (userRole != UserRole.ROLE_OWNER) {
+            return null;
+        }
+
+        List<RestaurantEntity> restaurants = restaurantRepository.findByUser_Id(userId);
+        return restaurants.isEmpty() ? null : restaurants.get(0).getRestaurantId();
     }
 }
