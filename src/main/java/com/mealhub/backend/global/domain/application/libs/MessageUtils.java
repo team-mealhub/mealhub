@@ -25,20 +25,26 @@ public class MessageUtils {
     private final HttpServletRequest request;
 
     public String getMessage(String code) {
-        return getMessage(code, null);
+        return getMessage(code, null, null);
     }
 
     public String getMessage(String code, String defaultMessage) {
+        return getMessage(code, null, defaultMessage);
+    }
+
+    public String getMessage(String code, Object[] args) {
+        return getMessage(code, args, null);
+    }
+
+    public String getMessage(String code, Object[] args, String defaultMessage) {
         ResourceBundleMessageSource ms = (ResourceBundleMessageSource) messageSource;
         ms.setUseCodeAsDefaultMessage(false);
 
         try {
             Locale locale = request.getLocale();
-            defaultMessage = StringUtils.hasText(defaultMessage)
-                    ? defaultMessage
-                    : "";
+            defaultMessage = StringUtils.hasText(defaultMessage) ? defaultMessage : "";
 
-            return ms.getMessage(code, null, defaultMessage, locale);
+            return ms.getMessage(code, args, defaultMessage, locale);
         } catch (Exception e) {
             return "";
         } finally {
