@@ -3,6 +3,7 @@ package com.mealhub.backend.cart.domain.entity;
 import com.mealhub.backend.cart.domain.enums.CartItemStatus;
 import com.mealhub.backend.cart.presentation.dto.request.CartItemCreateRequest;
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
+import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,8 +26,9 @@ public class CartItem extends BaseAuditEntity {
     @JoinColumn(name = "u_id")
     private User user;
 
-    @Column(name = "p_id")
-    private UUID productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "p_id")
+    private Product product;
 
     @Column(name = "ct_quantity")
     private int quantity;
@@ -43,15 +45,14 @@ public class CartItem extends BaseAuditEntity {
         this.buying = false;
     }
 
-    // TODO: product 연관관계 매핑
-    public static CartItem createCartItem(CartItemCreateRequest request, User user, UUID productId) {
+    public static CartItem createCartItem(CartItemCreateRequest request, User user, Product product) {
         CartItem cartItem = new CartItem(
                 request.getQuantity(),
                 request.getStatus()
         );
 
         cartItem.user = user;
-        cartItem.productId = productId;
+        cartItem.product = product;
 
         return cartItem;
     }
