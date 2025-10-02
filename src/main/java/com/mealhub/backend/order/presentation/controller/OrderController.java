@@ -69,9 +69,18 @@ public class OrderController {
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Page<OrderResponse> response = orderService.searchOrders(uId, rId, status, from, to, pageable);
+        Long currentUserId = UserDetailsImpl.extractUserId();
+        UserRole userRole = UserDetailsImpl.extractUserRole();
+
+        // TODO: OWNER의 경우 restaurantId 추출 필요 (User-Restaurant 관계가 1:N이므로 별도 조회 또는 파라미터 필요)
+        UUID ownerRestaurantId = null;
+
+        Page<OrderResponse> response = orderService.searchOrders(
+                uId, rId, status, from, to, pageable, currentUserId, userRole.name(), ownerRestaurantId
+        );
         return ResponseEntity.ok(response);
     }
 

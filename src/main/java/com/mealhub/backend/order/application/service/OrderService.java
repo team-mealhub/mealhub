@@ -89,17 +89,38 @@ public class OrderService {
         throw new RuntimeException("권한이 없습니다.");
     }
 
-    // 주문 검색
+    // 주문 검색 (역할별 권한 필터 적용)
     public Page<OrderResponse> searchOrders(
             Long userId,
             UUID restaurantId,
             OrderStatus status,
             LocalDateTime from,
             LocalDateTime to,
-            Pageable pageable
+            Pageable pageable,
+            Long currentUserId,
+            String userRole,
+            UUID ownerRestaurantId
     ) {
+        // 역할별 필터링 적용
+        Long filteredUserId = userId;
+        UUID filteredRestaurantId = restaurantId;
+
+        // CUSTOMER: 본인 주문만 조회 (userId 강제 설정)
+        if ("CUSTOMER".equals(userRole)) {
+            filteredUserId = currentUserId;
+            filteredRestaurantId = null; // 고객은 레스토랑 필터 무시
+        }
+
+        // OWNER: 본인 레스토랑 주문만 조회 (restaurantId 강제 설정)
+        if ("OWNER".equals(userRole)) {
+            filteredRestaurantId = ownerRestaurantId;
+            filteredUserId = null; // 점주는 사용자 필터 무시
+        }
+
+        // MANAGER: 모든 파라미터 그대로 사용 (전체 조회 가능)
+
         Page<OrderInfo> orders = orderInfoRepository.searchOrders(
-                userId, restaurantId, status, from, to, pageable
+                filteredUserId, filteredRestaurantId, status, from, to, pageable
         );
         return orders.map(OrderResponse::from);
     }
