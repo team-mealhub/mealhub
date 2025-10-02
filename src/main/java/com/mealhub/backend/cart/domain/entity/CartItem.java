@@ -39,16 +39,17 @@ public class CartItem extends BaseAuditEntity {
     @Column(name = "ct_is_buying")
     private boolean buying;
 
-    private CartItem(int quantity, CartItemStatus status) {
+    private CartItem(int quantity, CartItemStatus status, boolean buying) {
         this.quantity = quantity;
         this.status = status;
-        this.buying = false;
+        this.buying = buying;
     }
 
     public static CartItem createCartItem(CartItemCreateRequest request, User user, Product product) {
         CartItem cartItem = new CartItem(
                 request.getQuantity(),
-                request.getStatus()
+                request.getStatus(),
+                request.isBuying()
         );
 
         cartItem.user = user;

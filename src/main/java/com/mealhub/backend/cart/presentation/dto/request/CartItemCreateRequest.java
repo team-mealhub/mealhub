@@ -12,8 +12,8 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class CartItemCreateRequest {
-    // TODO: product 연관관계 매핑
-    private UUID productId;
+    private UUID p_id;
     private int quantity;
     private CartItemStatus status;
+    private boolean buying;
 }
