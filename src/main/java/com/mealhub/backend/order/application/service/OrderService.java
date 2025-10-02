@@ -24,6 +24,20 @@ public class OrderService {
 
     private final OrderInfoRepository orderInfoRepository;
 
+    // 권한 검증: CUSTOMER가 본인 주문인지 확인
+    private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
+        if (!orderInfo.getUserId().equals(currentUserId)) {
+            throw new RuntimeException("본인의 주문만 접근할 수 있습니다.");
+        }
+    }
+
+    // 권한 검증: OWNER가 자신의 가게 주문인지 확인 (TODO: Restaurant 엔티티 구현 후 개선 필요)
+    private void validateOwnerRestaurant(OrderInfo orderInfo, UUID ownerRestaurantId) {
+        if (!orderInfo.getRestaurantId().equals(ownerRestaurantId)) {
+            throw new RuntimeException("본인 가게의 주문만 접근할 수 있습니다.");
+        }
+    }
+
     // 주문 생성
     @Transactional
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
@@ -51,10 +65,28 @@ public class OrderService {
     }
 
     // 주문 단건 조회
-    public OrderDetailResponse getOrder(UUID orderId) {
+    public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, String userRole, UUID ownerRestaurantId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
-        return OrderDetailResponse.from(orderInfo);
+
+        // MANAGER는 모든 주문 조회 가능
+        if ("MANAGER".equals(userRole)) {
+            return OrderDetailResponse.from(orderInfo);
+        }
+
+        // CUSTOMER는 본인 주문만 조회 가능
+        if ("CUSTOMER".equals(userRole)) {
+            validateCustomerOwnership(orderInfo, currentUserId);
+            return OrderDetailResponse.from(orderInfo);
+        }
+
+        // OWNER는 본인 가게 주문만 조회 가능
+        if ("OWNER".equals(userRole)) {
+            validateOwnerRestaurant(orderInfo, ownerRestaurantId);
+            return OrderDetailResponse.from(orderInfo);
+        }
+
+        throw new RuntimeException("권한이 없습니다.");
     }
 
     // 주문 검색
@@ -74,9 +106,12 @@ public class OrderService {
 
     // 주문 상태 변경 (OWNER)
     @Transactional
-    public OrderResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request) {
+    public OrderResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, UUID ownerRestaurantId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+
+        // OWNER는 본인 가게 주문만 상태 변경 가능
+        validateOwnerRestaurant(orderInfo, ownerRestaurantId);
 
         orderInfo.updateStatus(request.getOStatus(), request.getReason());
         return OrderResponse.from(orderInfo);
@@ -84,9 +119,12 @@ public class OrderService {
 
     // 주문 취소 (CUSTOMER)
     @Transactional
-    public OrderResponse cancelOrder(UUID orderId, String reason) {
+    public OrderResponse cancelOrder(UUID orderId, String reason, Long currentUserId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+
+        // CUSTOMER는 본인 주문만 취소 가능
+        validateCustomerOwnership(orderInfo, currentUserId);
 
         orderInfo.cancel(reason);
         return OrderResponse.from(orderInfo);
@@ -94,10 +132,23 @@ public class OrderService {
 
     // 주문 삭제 (소프트 삭제)
     @Transactional
-    public void deleteOrder(UUID orderId, Long deletedBy) {
+    public void deleteOrder(UUID orderId, Long deletedBy, String userRole, UUID ownerRestaurantId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
 
-        orderInfo.delete(deletedBy);
+        // MANAGER는 모든 주문 삭제 가능
+        if ("MANAGER".equals(userRole)) {
+            orderInfo.delete(deletedBy);
+            return;
+        }
+
+        // OWNER는 본인 가게 주문만 삭제 가능
+        if ("OWNER".equals(userRole)) {
+            validateOwnerRestaurant(orderInfo, ownerRestaurantId);
+            orderInfo.delete(deletedBy);
+            return;
+        }
+
+        throw new RuntimeException("권한이 없습니다.");
     }
 }

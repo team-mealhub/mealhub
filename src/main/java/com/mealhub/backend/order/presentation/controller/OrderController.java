@@ -45,8 +45,16 @@ public class OrderController {
     // 주문 단건 조회
     @GetMapping("/{o_id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER', 'OWNER')")
-    public ResponseEntity<OrderDetailResponse> getOrder(@PathVariable("o_id") UUID orderId) {
-        OrderDetailResponse response = orderService.getOrder(orderId);
+    public ResponseEntity<OrderDetailResponse> getOrder(
+            @PathVariable("o_id") UUID orderId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        // TODO: UserDetails에서 실제 userId, role, restaurantId 추출 (현재는 임시)
+        Long currentUserId = 1L;
+        String userRole = "CUSTOMER";  // 또는 "OWNER", "MANAGER"
+        UUID ownerRestaurantId = null;  // OWNER인 경우 실제 가게 ID 필요
+
+        OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole, ownerRestaurantId);
         return ResponseEntity.ok(response);
     }
 
@@ -70,9 +78,13 @@ public class OrderController {
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable("o_id") UUID orderId,
-            @RequestBody OrderStatusUpdateRequest request
+            @RequestBody OrderStatusUpdateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        OrderResponse response = orderService.updateOrderStatus(orderId, request);
+        // TODO: UserDetails에서 실제 restaurantId 추출 (현재는 임시)
+        UUID ownerRestaurantId = null;  // OWNER의 가게 ID 필요
+
+        OrderResponse response = orderService.updateOrderStatus(orderId, request, ownerRestaurantId);
         return ResponseEntity.ok(response);
     }
 
@@ -81,9 +93,13 @@ public class OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> cancelOrder(
             @PathVariable("o_id") UUID orderId,
-            @RequestParam(required = false, defaultValue = "변심") String reason
+            @RequestParam(required = false, defaultValue = "변심") String reason,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        OrderResponse response = orderService.cancelOrder(orderId, reason);
+        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
+        Long currentUserId = 1L;
+
+        OrderResponse response = orderService.cancelOrder(orderId, reason, currentUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -94,9 +110,12 @@ public class OrderController {
             @PathVariable("o_id") UUID orderId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
+        // TODO: UserDetails에서 실제 userId, role, restaurantId 추출 (현재는 임시)
         Long currentUserId = 1L;
-        orderService.deleteOrder(orderId, currentUserId);
+        String userRole = "MANAGER";  // 또는 "OWNER"
+        UUID ownerRestaurantId = null;  // OWNER인 경우 실제 가게 ID 필요
+
+        orderService.deleteOrder(orderId, currentUserId, userRole, ownerRestaurantId);
         return ResponseEntity.noContent().build();
     }
 }
