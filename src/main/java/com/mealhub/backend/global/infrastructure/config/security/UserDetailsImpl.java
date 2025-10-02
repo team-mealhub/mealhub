@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -55,5 +56,37 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
+    }
+
+    /**
+     * SecurityContext에서 현재 인증된 사용자의 ID를 추출합니다.
+     *
+     * @return 현재 사용자의 ID (Long)
+     * @throws IllegalStateException 인증 정보가 없거나 UserDetailsImpl이 아닌 경우
+     */
+    public static Long extractUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof UserDetailsImpl) {
+            return ((UserDetailsImpl) principal).getId();
+        }
+
+        throw new IllegalStateException("인증된 사용자 정보를 찾을 수 없습니다.");
+    }
+
+    /**
+     * SecurityContext에서 현재 인증된 사용자의 역할을 추출합니다.
+     *
+     * @return 현재 사용자의 역할 (UserRole)
+     * @throws IllegalStateException 인증 정보가 없거나 UserDetailsImpl이 아닌 경우
+     */
+    public static UserRole extractUserRole() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof UserDetailsImpl) {
+            return ((UserDetailsImpl) principal).getRole();
+        }
+
+        throw new IllegalStateException("인증된 사용자 정보를 찾을 수 없습니다.");
     }
 }
