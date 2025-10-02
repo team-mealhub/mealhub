@@ -18,9 +18,3 @@ service:
   jwt:
     secret-key: ${jwt.secret-key}
     access-expiration: ${jwt.access-expiration}
-
-# 로깅 설정
-logging:
-  level:
-    org.hibernate.type: trace
-    org.hibernate.orm.jdbc.bind: trace
