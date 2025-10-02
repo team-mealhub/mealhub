@@ -1,4 +1,4 @@
-package com.mealhub.backend.product.presentation.dto;
+package com.mealhub.backend.product.presentation.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
