@@ -28,7 +28,7 @@ public class AddressController {
         return ResponseEntity.status(HttpStatus.CREATED).body(addressResponse);
     }
 
-    // 주소 조회(1개)
+    // 주소 조회(단일)
     @GetMapping("/{id}")
     public ResponseEntity<AddressResponse> getAddress(@PathVariable UUID id) {
         User mockUser = new User();
@@ -58,5 +58,12 @@ public class AddressController {
         User mockUser = new User();
         addressService.deleteAddress(mockUser, id);
         return ResponseEntity.noContent().build();
+    }
+
+    // 기본 주소 변경
+    public ResponseEntity<AddressResponse> changeDefaultAddress(@PathVariable UUID id) {
+        User mockUser = new User();
+        AddressResponse addressResponse = addressService.changeDefault(mockUser, id);
+        return ResponseEntity.ok(addressResponse);
     }
 }
