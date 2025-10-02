@@ -1,11 +1,13 @@
 package com.mealhub.backend.order.presentation.controller;
 
+import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
 import com.mealhub.backend.order.application.service.OrderService;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
+import com.mealhub.backend.user.domain.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,8 +38,7 @@ public class OrderController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody OrderCreateRequest request
     ) {
-        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
-        Long userId = 1L;
+        Long userId = UserDetailsImpl.extractUserId();
         OrderResponse response = orderService.createOrder(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -49,12 +50,13 @@ public class OrderController {
             @PathVariable("o_id") UUID orderId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // TODO: UserDetails에서 실제 userId, role, restaurantId 추출 (현재는 임시)
-        Long currentUserId = 1L;
-        String userRole = "CUSTOMER";  // 또는 "OWNER", "MANAGER"
-        UUID ownerRestaurantId = null;  // OWNER인 경우 실제 가게 ID 필요
+        Long currentUserId = UserDetailsImpl.extractUserId();
+        UserRole userRole = UserDetailsImpl.extractUserRole();
 
-        OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole, ownerRestaurantId);
+        // TODO: OWNER의 경우 restaurantId 추출 필요 (User-Restaurant 관계가 1:N이므로 별도 조회 또는 파라미터 필요)
+        UUID ownerRestaurantId = null;
+
+        OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole.name(), ownerRestaurantId);
         return ResponseEntity.ok(response);
     }
 
@@ -96,9 +98,7 @@ public class OrderController {
             @RequestParam(required = false, defaultValue = "변심") String reason,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
-        Long currentUserId = 1L;
-
+        Long currentUserId = UserDetailsImpl.extractUserId();
         OrderResponse response = orderService.cancelOrder(orderId, reason, currentUserId);
         return ResponseEntity.ok(response);
     }
@@ -110,12 +110,13 @@ public class OrderController {
             @PathVariable("o_id") UUID orderId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        // TODO: UserDetails에서 실제 userId, role, restaurantId 추출 (현재는 임시)
-        Long currentUserId = 1L;
-        String userRole = "MANAGER";  // 또는 "OWNER"
-        UUID ownerRestaurantId = null;  // OWNER인 경우 실제 가게 ID 필요
+        Long currentUserId = UserDetailsImpl.extractUserId();
+        UserRole userRole = UserDetailsImpl.extractUserRole();
 
-        orderService.deleteOrder(orderId, currentUserId, userRole, ownerRestaurantId);
+        // TODO: OWNER의 경우 restaurantId 추출 필요 (User-Restaurant 관계가 1:N이므로 별도 조회 또는 파라미터 필요)
+        UUID ownerRestaurantId = null;
+
+        orderService.deleteOrder(orderId, currentUserId, userRole.name(), ownerRestaurantId);
         return ResponseEntity.noContent().build();
     }
 }
