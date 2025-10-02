@@ -58,6 +58,26 @@ public class UserDetailsImpl implements UserDetails {
         return UserDetails.super.isEnabled();
     }
 
+    public static UserDetailsImpl from(User user) {
+        return new UserDetailsImpl(
+                user.getId(),
+                user.getUserId(),
+                user.getPassword(),
+                user.getRole()
+        );
+    }
+
+    public User toUser() {
+        User user = new User();
+
+        user.setId(this.id);
+        user.setUserId(this.userId);
+        user.setPassword(this.password);
+        user.setRole(this.role);
+
+        return user;
+    }
+
     /**
      * SecurityContext에서 현재 인증된 사용자의 ID를 추출합니다.
      *
