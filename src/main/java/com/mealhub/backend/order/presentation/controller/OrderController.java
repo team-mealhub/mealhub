@@ -90,8 +90,13 @@ public class OrderController {
     // 주문 삭제
     @DeleteMapping("/{o_id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'OWNER')")
-    public ResponseEntity<Void> deleteOrder(@PathVariable("o_id") UUID orderId) {
-        orderService.deleteOrder(orderId);
+    public ResponseEntity<Void> deleteOrder(
+            @PathVariable("o_id") UUID orderId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
+        Long currentUserId = 1L;
+        orderService.deleteOrder(orderId, currentUserId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -87,4 +87,9 @@ public class OrderInfo extends BaseAuditEntity {
         }
         updateStatus(OrderStatus.CANCELLED, reason);
     }
+
+    public void delete(Long deletedBy) {
+        this.deletedAt = java.time.LocalDateTime.now();
+        this.deletedBy = deletedBy;
+    }
 }

@@ -94,10 +94,10 @@ public class OrderService {
 
     // 주문 삭제 (소프트 삭제)
     @Transactional
-    public void deleteOrder(UUID orderId) {
+    public void deleteOrder(UUID orderId, Long deletedBy) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
 
-        orderInfoRepository.delete(orderInfo);
+        orderInfo.delete(deletedBy);
     }
 }
