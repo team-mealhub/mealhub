@@ -1,5 +1,6 @@
 package com.mealhub.backend.restaurant.domain.entity;
 
+import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "p_restaurant_category")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class RestaurantCategoryEntity {
+public class RestaurantCategoryEntity extends BaseAuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
