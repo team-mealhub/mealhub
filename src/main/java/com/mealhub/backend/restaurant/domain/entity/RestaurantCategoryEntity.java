@@ -22,7 +22,7 @@ public class RestaurantCategoryEntity extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "rc_id", nullable = false)
-    private UUID rcId;
+    private UUID categoryId;
 
     @Column(name = "rc_category", nullable = false, length = 20)
     private String category;

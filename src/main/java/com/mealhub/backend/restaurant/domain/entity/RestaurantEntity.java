@@ -30,7 +30,7 @@ public class RestaurantEntity extends BaseAuditEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "u_id", nullable = false)
-    private User userId;
+    private User user;
 
 //    ToDo: Address Entity 생성 후 주석 해제
 //    @OneToOne
@@ -51,10 +51,10 @@ public class RestaurantEntity extends BaseAuditEntity {
     private Boolean status;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private RestaurantEntity(User userId, String name, String description,
+    private RestaurantEntity(User user, String name, String description,
             RestaurantCategoryEntity category, Boolean status) {
-        this.userId = userId;
-//        this.aId = Address addressId;
+        this.user = user;
+//        this.addressId = Address addressId;
         this.name = name;
         this.description = description;
         this.category = category;
