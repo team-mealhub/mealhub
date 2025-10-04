@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -76,57 +75,5 @@ public class UserDetailsImpl implements UserDetails {
         user.setRole(this.role);
 
         return user;
-    }
-
-    /**
-     * SecurityContext에서 현재 인증된 사용자의 ID를 추출합니다.
-     *
-     * @return 현재 사용자의 ID (Long)
-     * @throws IllegalStateException 인증 정보가 없거나 UserDetailsImpl이 아닌 경우
-     */
-    public static Long extractUserId() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null) {
-            throw new IllegalStateException("인증 정보가 존재하지 않습니다.");
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (principal == null) {
-            throw new IllegalStateException("인증된 사용자 정보가 존재하지 않습니다.");
-        }
-
-        if (principal instanceof UserDetailsImpl) {
-            return ((UserDetailsImpl) principal).getId();
-        }
-
-        throw new IllegalStateException("인증된 사용자 정보를 찾을 수 없습니다.");
-    }
-
-    /**
-     * SecurityContext에서 현재 인증된 사용자의 역할을 추출합니다.
-     *
-     * @return 현재 사용자의 역할 (UserRole)
-     * @throws IllegalStateException 인증 정보가 없거나 UserDetailsImpl이 아닌 경우
-     */
-    public static UserRole extractUserRole() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null) {
-            throw new IllegalStateException("인증 정보가 존재하지 않습니다.");
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (principal == null) {
-            throw new IllegalStateException("인증된 사용자 정보가 존재하지 않습니다.");
-        }
-
-        if (principal instanceof UserDetailsImpl) {
-            return ((UserDetailsImpl) principal).getRole();
-        }
-
-        throw new IllegalStateException("인증된 사용자 정보를 찾을 수 없습니다.");
     }
 }

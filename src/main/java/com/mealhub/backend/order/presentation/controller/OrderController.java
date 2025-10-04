@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -39,10 +38,10 @@ public class OrderController {
     @PostMapping
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     public ResponseEntity<OrderResponse> createOrder(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody OrderCreateRequest request
     ) {
-        Long userId = UserDetailsImpl.extractUserId();
+        Long userId = userDetails.getId();
         OrderResponse response = orderService.createOrder(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -52,10 +51,10 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER', 'OWNER')")
     public ResponseEntity<OrderDetailResponse> getOrder(
             @PathVariable("o_id") UUID orderId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Long currentUserId = UserDetailsImpl.extractUserId();
-        UserRole userRole = UserDetailsImpl.extractUserRole();
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
 
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
@@ -73,10 +72,10 @@ public class OrderController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Long currentUserId = UserDetailsImpl.extractUserId();
-        UserRole userRole = UserDetailsImpl.extractUserRole();
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
 
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
@@ -92,10 +91,10 @@ public class OrderController {
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable("o_id") UUID orderId,
             @RequestBody OrderStatusUpdateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Long currentUserId = UserDetailsImpl.extractUserId();
-        UserRole userRole = UserDetailsImpl.extractUserRole();
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
 
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
@@ -109,9 +108,9 @@ public class OrderController {
     public ResponseEntity<OrderResponse> cancelOrder(
             @PathVariable("o_id") UUID orderId,
             @RequestParam(required = false, defaultValue = "변심") String reason,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Long currentUserId = UserDetailsImpl.extractUserId();
+        Long currentUserId = userDetails.getId();
         OrderResponse response = orderService.cancelOrder(orderId, reason, currentUserId);
         return ResponseEntity.ok(response);
     }
@@ -121,10 +120,10 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('MANAGER', 'OWNER')")
     public ResponseEntity<Void> deleteOrder(
             @PathVariable("o_id") UUID orderId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Long currentUserId = UserDetailsImpl.extractUserId();
-        UserRole userRole = UserDetailsImpl.extractUserRole();
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
 
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
