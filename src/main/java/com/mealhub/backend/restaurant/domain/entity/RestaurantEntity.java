@@ -1,6 +1,8 @@
 package com.mealhub.backend.restaurant.domain.entity;
 
+import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
+import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantRequest;
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,10 +34,9 @@ public class RestaurantEntity extends BaseAuditEntity {
     @JoinColumn(name = "u_id", nullable = false)
     private User user;
 
-//    ToDo: Address Entity 생성 후 주석 해제
-//    @OneToOne
-//    @JoinColumn(name = "a_id", nullable = false)
-//    private Address addressId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "a_id", nullable = false)
+    private Address address;
 
     @Column(name = "r_name", nullable = false, length = 20)
     private String name;
@@ -51,13 +52,25 @@ public class RestaurantEntity extends BaseAuditEntity {
     private Boolean status;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private RestaurantEntity(User user, String name, String description,
+    private RestaurantEntity(User user, Address address, String name, String description,
             RestaurantCategoryEntity category, Boolean status) {
         this.user = user;
-//        this.addressId = Address addressId;
+        this.address = address;
         this.name = name;
         this.description = description;
         this.category = category;
         this.status = status;
+    }
+
+    public static RestaurantEntity of(RestaurantRequest restaurantRequest, User user,
+            Address address, RestaurantCategoryEntity category) {
+        return RestaurantEntity.builder()
+                .user(user)
+                .address(address)
+                .name(restaurantRequest.getName())
+                .description(restaurantRequest.getDescription())
+                .category(category)
+                .status(false)
+                .build();
     }
 }
