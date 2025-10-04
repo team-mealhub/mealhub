@@ -85,7 +85,17 @@ public class UserDetailsImpl implements UserDetails {
      * @throws IllegalStateException 인증 정보가 없거나 UserDetailsImpl이 아닌 경우
      */
     public static Long extractUserId() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            throw new IllegalStateException("인증 정보가 존재하지 않습니다.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal == null) {
+            throw new IllegalStateException("인증된 사용자 정보가 존재하지 않습니다.");
+        }
 
         if (principal instanceof UserDetailsImpl) {
             return ((UserDetailsImpl) principal).getId();
@@ -101,7 +111,17 @@ public class UserDetailsImpl implements UserDetails {
      * @throws IllegalStateException 인증 정보가 없거나 UserDetailsImpl이 아닌 경우
      */
     public static UserRole extractUserRole() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            throw new IllegalStateException("인증 정보가 존재하지 않습니다.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal == null) {
+            throw new IllegalStateException("인증된 사용자 정보가 존재하지 않습니다.");
+        }
 
         if (principal instanceof UserDetailsImpl) {
             return ((UserDetailsImpl) principal).getRole();

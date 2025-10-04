@@ -1,5 +1,7 @@
 package com.mealhub.backend.order.application.service;
 
+import com.mealhub.backend.global.domain.exception.ForbiddenException;
+import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
@@ -8,6 +10,7 @@ import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
+import com.mealhub.backend.user.domain.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,14 +30,14 @@ public class OrderService {
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
         if (!orderInfo.getUserId().equals(currentUserId)) {
-            throw new RuntimeException("본인의 주문만 접근할 수 있습니다.");
+            throw new ForbiddenException("본인의 주문만 접근할 수 있습니다.");
         }
     }
 
-    // 권한 검증: OWNER가 자신의 가게 주문인지 확인 (TODO: Restaurant 엔티티 구현 후 개선 필요)
+    // 권한 검증: OWNER가 자신의 가게 주문인지 확인
     private void validateOwnerRestaurant(OrderInfo orderInfo, UUID ownerRestaurantId) {
         if (!orderInfo.getRestaurantId().equals(ownerRestaurantId)) {
-            throw new RuntimeException("본인 가게의 주문만 접근할 수 있습니다.");
+            throw new ForbiddenException("본인 가게의 주문만 접근할 수 있습니다.");
         }
     }
 
@@ -65,28 +68,28 @@ public class OrderService {
     }
 
     // 주문 단건 조회
-    public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, String userRole, UUID ownerRestaurantId) {
+    public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, UserRole userRole, UUID ownerRestaurantId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
         // MANAGER는 모든 주문 조회 가능
-        if ("MANAGER".equals(userRole)) {
+        if (UserRole.ROLE_MANAGER.equals(userRole)) {
             return OrderDetailResponse.from(orderInfo);
         }
 
         // CUSTOMER는 본인 주문만 조회 가능
-        if ("CUSTOMER".equals(userRole)) {
+        if (UserRole.ROLE_CUSTOMER.equals(userRole)) {
             validateCustomerOwnership(orderInfo, currentUserId);
             return OrderDetailResponse.from(orderInfo);
         }
 
         // OWNER는 본인 가게 주문만 조회 가능
-        if ("OWNER".equals(userRole)) {
+        if (UserRole.ROLE_OWNER.equals(userRole)) {
             validateOwnerRestaurant(orderInfo, ownerRestaurantId);
             return OrderDetailResponse.from(orderInfo);
         }
 
-        throw new RuntimeException("권한이 없습니다.");
+        throw new ForbiddenException("권한이 없습니다.");
     }
 
     // 주문 검색 (역할별 권한 필터 적용)
@@ -98,7 +101,7 @@ public class OrderService {
             LocalDateTime to,
             Pageable pageable,
             Long currentUserId,
-            String userRole,
+            UserRole userRole,
             UUID ownerRestaurantId
     ) {
         // 역할별 필터링 적용
@@ -106,13 +109,13 @@ public class OrderService {
         UUID filteredRestaurantId = restaurantId;
 
         // CUSTOMER: 본인 주문만 조회 (userId 강제 설정)
-        if ("CUSTOMER".equals(userRole)) {
+        if (UserRole.ROLE_CUSTOMER.equals(userRole)) {
             filteredUserId = currentUserId;
             filteredRestaurantId = null; // 고객은 레스토랑 필터 무시
         }
 
         // OWNER: 본인 레스토랑 주문만 조회 (restaurantId 강제 설정)
-        if ("OWNER".equals(userRole)) {
+        if (UserRole.ROLE_OWNER.equals(userRole)) {
             filteredRestaurantId = ownerRestaurantId;
             filteredUserId = null; // 점주는 사용자 필터 무시
         }
@@ -129,7 +132,7 @@ public class OrderService {
     @Transactional
     public OrderResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, UUID ownerRestaurantId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
         // OWNER는 본인 가게 주문만 상태 변경 가능
         validateOwnerRestaurant(orderInfo, ownerRestaurantId);
@@ -142,7 +145,7 @@ public class OrderService {
     @Transactional
     public OrderResponse cancelOrder(UUID orderId, String reason, Long currentUserId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
         // CUSTOMER는 본인 주문만 취소 가능
         validateCustomerOwnership(orderInfo, currentUserId);
@@ -153,23 +156,23 @@ public class OrderService {
 
     // 주문 삭제 (소프트 삭제)
     @Transactional
-    public void deleteOrder(UUID orderId, Long deletedBy, String userRole, UUID ownerRestaurantId) {
+    public void deleteOrder(UUID orderId, Long deletedBy, UserRole userRole, UUID ownerRestaurantId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
         // MANAGER는 모든 주문 삭제 가능
-        if ("MANAGER".equals(userRole)) {
+        if (UserRole.ROLE_MANAGER.equals(userRole)) {
             orderInfo.delete(deletedBy);
             return;
         }
 
         // OWNER는 본인 가게 주문만 삭제 가능
-        if ("OWNER".equals(userRole)) {
+        if (UserRole.ROLE_OWNER.equals(userRole)) {
             validateOwnerRestaurant(orderInfo, ownerRestaurantId);
             orderInfo.delete(deletedBy);
             return;
         }
 
-        throw new RuntimeException("권한이 없습니다.");
+        throw new ForbiddenException("권한이 없습니다.");
     }
 }

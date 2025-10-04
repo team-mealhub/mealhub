@@ -59,7 +59,7 @@ public class OrderController {
 
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
-        OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole.name(), ownerRestaurantId);
+        OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole, ownerRestaurantId);
         return ResponseEntity.ok(response);
     }
 
@@ -81,7 +81,7 @@ public class OrderController {
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
         Page<OrderResponse> response = orderService.searchOrders(
-                uId, rId, status, from, to, pageable, currentUserId, userRole.name(), ownerRestaurantId
+                uId, rId, status, from, to, pageable, currentUserId, userRole, ownerRestaurantId
         );
         return ResponseEntity.ok(response);
     }
@@ -128,7 +128,7 @@ public class OrderController {
 
         UUID ownerRestaurantId = extractOwnerRestaurantId(currentUserId, userRole);
 
-        orderService.deleteOrder(orderId, currentUserId, userRole.name(), ownerRestaurantId);
+        orderService.deleteOrder(orderId, currentUserId, userRole, ownerRestaurantId);
         return ResponseEntity.noContent().build();
     }
 
