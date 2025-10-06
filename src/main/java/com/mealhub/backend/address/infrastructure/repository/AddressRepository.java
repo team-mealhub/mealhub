@@ -17,14 +17,14 @@ public interface AddressRepository extends JpaRepository<Address, UUID> {
     List<Address> findByUser(User user);
 
     //사용자 기본 주소
-    Optional<Address> findByUserAndIsDefaultTrue(User user);
+    Optional<Address> findByUserAndDefaultAddressTrue(User user);
 
     // 사용자 기본 주소 존재 여부
-    boolean existsByUserAndIsDefaultTrue(User user);
+    boolean existsByUserAndDefaultAddressTrue(User user);
 
     // 사용자 주소 조회(id기준)
-    Optional<Address> findByAIdAndUser(UUID aId, User user);
+    Optional<Address> findByIdAndUser(UUID id, User user);
 
     // 사용자 주소 삭제(id기준)
-    void deleteByAIdAndUser(UUID aId, User user);
+    void deleteByIdAndUser(UUID id, User user);
 }

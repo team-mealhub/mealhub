@@ -4,6 +4,7 @@ import com.mealhub.backend.address.application.service.AddressService;
 import com.mealhub.backend.address.presentation.dto.request.AddressRequest;
 import com.mealhub.backend.address.presentation.dto.response.AddressResponse;
 import com.mealhub.backend.user.domain.entity.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class AddressController {
 
     // 주소 등록
     @PostMapping
-    public ResponseEntity<AddressResponse> createAddress(@RequestBody AddressRequest addressRequest) {
+    public ResponseEntity<AddressResponse> createAddress(@Valid @RequestBody AddressRequest addressRequest) {
         // 현재는 임시 mock 사용
         User mockUser = new User();
         AddressResponse addressResponse = addressService.create(mockUser, addressRequest);
@@ -46,7 +47,7 @@ public class AddressController {
 
     // 주소 수정
     @PutMapping("/{id}")
-    public ResponseEntity<AddressResponse> updateAddress(@PathVariable UUID id, @RequestBody AddressRequest addressRequest) {
+    public ResponseEntity<AddressResponse> updateAddress(@PathVariable UUID id, @Valid @RequestBody AddressRequest addressRequest) {
         User mockUser = new User();
         AddressResponse addressResponse = addressService.updateAddress(mockUser, id, addressRequest);
         return ResponseEntity.ok(addressResponse);
@@ -61,6 +62,7 @@ public class AddressController {
     }
 
     // 기본 주소 변경
+    @PatchMapping("/{id}/default")
     public ResponseEntity<AddressResponse> changeDefaultAddress(@PathVariable UUID id) {
         User mockUser = new User();
         AddressResponse addressResponse = addressService.changeDefault(mockUser, id);
