@@ -31,14 +31,7 @@ public class Product extends BaseAuditEntity {
     private long pPrice;
 
 
-    public static Product createProduct(UUID rId, String pName, String pDescription, long pPrice) {
-        return Product.builder()
-                .rId(rId)
-                .pName(pName)
-                .pDescription(pDescription)
-                .pPrice(pPrice)
-                .build();
-    }
+
 
 
     /* ==========================
@@ -56,22 +49,5 @@ public class Product extends BaseAuditEntity {
         this.pPrice = price;
     }
 
-    /**
-     * 음식 가격 변경
-     */
-    public void changePrice(long newPrice) {
-        if (newPrice < 0) {
-            throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
-        }
-        this.pPrice = newPrice;
-    }
-
-    /**
-     * 음식 설명 변경
-     */
-    public void changeDescription(String newDescription) {
-        this.pDescription = newDescription;
-
-    }
 
 }
