@@ -3,7 +3,12 @@ package com.mealhub.backend.product.presentation.controller;
 import com.mealhub.backend.product.application.service.ProductService;
 import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
 import com.mealhub.backend.product.presentation.dto.response.ProductResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +23,17 @@ import java.util.UUID;
 public class ProductController {
     private final ProductService productservice;
 
+    // 1. 음식 생성 (Create) - 반환 타입: ResponseEntity<ProductResponse> (201 Created)
+    // POST /v1/product
+    @PostMapping
+    public ResponseEntity<ProductResponse> create(@RequestBody @Valid ProductRequest productRequest) {
+        // @Valid를 사용하여 DTO의 제약 조건(예: @NotNull)을 검증합니다.
+        ProductResponse productResponse = productservice.createProduct(productRequest);
+
+        // 생성 성공 시 HTTP 201 Created 응답과 함께 생성된 리소스를 반환합니다.
+        return ResponseEntity.status(HttpStatus.CREATED).body(productResponse);
+    }
+
 
     // 2. 음식 조회 (Read - by ID) - 반환 타입: ResponseEntity<ProductResponse>
     // GET /v1/product/{pId}
@@ -27,26 +43,29 @@ public class ProductController {
         return ResponseEntity.ok(productResponse);
     }
 
-    // 3. 음식 검색 (Search) - 반환 타입: ResponseEntity<List<ProductResponse>>
-    // GET /v1/product?rId={rId}&keyword={keyword}&page={page}&size={size}
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> search(
+    public ResponseEntity<Page<ProductResponse>> search(
             @RequestParam(required = false) UUID rId,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "1") int page, // 페이지 인덱스는 1부터 시작하도록 수정
             @RequestParam(defaultValue = "10") int size
     ) {
-        // 현재 Service에는 searchProducts가 없으므로 임시로 getAllProducts를 사용합니다.
-        List<ProductResponse> allProducts = productservice.getAllProducts();
-        return ResponseEntity.ok(allProducts);
+        // Pageable 객체 생성 (page는 1부터 시작)
+        Pageable pageable = PageRequest.of(page, size);
+
+        // searchProducts 메서드를 호출하여 Page<ProductResponse>를 받음
+        Page<ProductResponse> productPage = productservice.searchProducts(rId, keyword, pageable);
+
+        return ResponseEntity.ok(productPage);
     }
+
 
     // 4. 음식 수정 (Update) - 반환 타입: ResponseEntity<ProductResponse>
     // PUT /v1/product
     @PutMapping
     public ResponseEntity<ProductResponse> update(@RequestBody ProductRequest productRequest) {
         // ProductRequest에서 ID를 추출하여 Service의 updateProduct(UUID, ProductRequest) 호출
-        UUID productIdFromRequest = productRequest.getpId(); // ProductRequest에 pId 필드가 있다고 가정
+        UUID productIdFromRequest = productRequest.getRId(); // ProductRequest에 pId 필드가 있다고 가정
         if (productIdFromRequest == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -57,10 +76,9 @@ public class ProductController {
     // 5. 음식 숨김 처리 (Hide) - 반환 타입: ResponseEntity<Void> (204 No Content)
     // PATCH /v1/product/{pId}/hide
     @PatchMapping("/{pId}/hide")
-    public ResponseEntity<Void> hide(@PathVariable UUID pId) {
-        // TODO: ProductService에 hideProduct(UUID pId) 구현 필요
-        // productService.hideProduct(pId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ProductResponse> hideProduct(@PathVariable UUID pId) {
+        ProductResponse productResponse = productservice.hideProduct(pId);
+        return ResponseEntity.ok(productResponse);
     }
 
     // 6. 음식 삭제 (Delete) - 반환 타입: ResponseEntity<Void> (204 No Content)

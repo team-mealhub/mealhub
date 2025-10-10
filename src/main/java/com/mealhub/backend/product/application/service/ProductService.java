@@ -135,7 +135,7 @@ public class ProductService {
      * 특정 상품의 상태를 숨김(pStatus=false)으로 변경합니다.
      */
     @Transactional
-    public void hideProduct(UUID pId) {
+    public ProductResponse hideProduct(UUID pId) {
         Product product = productRepository.findById(pId)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + pId));
 
@@ -143,6 +143,9 @@ public class ProductService {
         product.setHidden(true);
 
         // @Transactional에 의해 변경 내용이 자동으로 DB에 반영됨 (더티 체킹)
+
+
+        return ProductResponse.from(product);
     }
 
 
@@ -151,3 +154,6 @@ public class ProductService {
 
 
 }
+
+
+
