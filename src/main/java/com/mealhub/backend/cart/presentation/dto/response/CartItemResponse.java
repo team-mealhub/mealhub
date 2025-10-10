@@ -18,6 +18,6 @@ public class CartItemResponse {
         this.ct_id = cartItem.getId();
         this.p_id = cartItem.getProduct().getPId();
         this.quantity = cartItem.getQuantity();
-        this.price = cartItem.getProduct().getPPrice() * cartItem.getQuantity();
+        this.price = cartItem.getProduct().getPPrice();
     }
 }
