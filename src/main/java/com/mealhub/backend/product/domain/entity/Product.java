@@ -30,8 +30,17 @@ public class Product extends BaseAuditEntity {
     @Column(name = "p_price", nullable = false)
     private long pPrice;
 
-
-
+    /**
+     * 정적 팩토리 메서드: DTO로부터 새로운 Product 엔티티를 생성합니다.
+    */
+    public static Product createProduct(UUID rId, String pName, String pDescription, long pPrice) {
+        return Product.builder()
+                .rId(rId)
+                .pName(pName)
+                .pDescription(pDescription)
+                .pPrice(pPrice)
+                .build();
+    }
 
 
     /* ==========================

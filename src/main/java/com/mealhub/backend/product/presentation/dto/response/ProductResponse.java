@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Getter
-@Builder // DTO 생성을 위해 Builder 패턴 추가
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductResponse {
