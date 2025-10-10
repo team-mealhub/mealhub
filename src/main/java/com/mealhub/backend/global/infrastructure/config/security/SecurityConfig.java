@@ -1,5 +1,7 @@
 package com.mealhub.backend.global.infrastructure.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mealhub.backend.global.domain.application.libs.MessageUtils;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthenticationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthorizationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
@@ -28,6 +30,9 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
 
+    private final ObjectMapper objectMapper;
+    private final MessageUtils messageUtils;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -40,7 +45,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, objectMapper, messageUtils);
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
     }
