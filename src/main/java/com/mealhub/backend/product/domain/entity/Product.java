@@ -16,19 +16,26 @@ import java.util.UUID;
 @Getter
 @Builder
 public class Product extends BaseAuditEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "p_id", updatable = false, nullable = false)
     private UUID pId;
-    @Column(name = "r_id", updatable = false, nullable = false)
-    @GeneratedValue(strategy = GenerationType.UUID)
+
+    // @ManyToOne(fetch = FetchType.LAZY) <-- 제거
+    // @GeneratedValue(strategy = GenerationType.UUID) <-- 제거
+    @Column(name = "r_id", nullable = false) // 일반 컬럼으로 매핑
     private UUID rId;
+
     @Column(name = "p_name", length = 20, nullable = false)
     private String pName;
+
     @Column(name = "p_description", length = 255, nullable = true)
     private String pDescription;
+
     @Column(name = "p_price", nullable = false)
     private long pPrice;
+
     @Column(name = "p_status", nullable = false)
     private boolean pStatus;
     /**
