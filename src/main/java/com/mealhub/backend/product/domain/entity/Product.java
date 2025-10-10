@@ -29,16 +29,18 @@ public class Product extends BaseAuditEntity {
     private String pDescription;
     @Column(name = "p_price", nullable = false)
     private long pPrice;
-
+    @Column(name = "p_status", nullable = false)
+    private boolean pStatus;
     /**
      * 정적 팩토리 메서드: DTO로부터 새로운 Product 엔티티를 생성합니다.
     */
-    public static Product createProduct(UUID rId, String pName, String pDescription, long pPrice) {
+    public static Product createProduct(UUID rId, String pName, String pDescription, long pPrice, boolean pStatus) {
         return Product.builder()
                 .rId(rId)
                 .pName(pName)
                 .pDescription(pDescription)
                 .pPrice(pPrice)
+                .pStatus(pStatus)
                 .build();
     }
 
@@ -56,6 +58,15 @@ public class Product extends BaseAuditEntity {
         }
         this.pDescription = description;
         this.pPrice = price;
+    }
+
+
+  /**
+   * 음식 숨김 상태 처리 (true = 음식이 보여짐 , false = 음식 숨김 처리)
+   */
+    public void setHidden(boolean isHidden) {
+        // isHidden이 true일 때 pStatus는 false가 되어야 함 (숨김)
+        this.pStatus = !isHidden;
     }
 
 

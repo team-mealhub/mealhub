@@ -31,7 +31,8 @@ public class ProductService {
                 productRequest.getRId(),
                 productRequest.getPName(),
                 productRequest.getPDescription(),
-                productRequest.getPPrice()
+                productRequest.getPPrice(),
+                true //  다섯 번째 인자 (pStatus) 추가
         );
 
         // 2. 저장 및 저장된 엔티티 반환
@@ -125,6 +126,23 @@ public class ProductService {
 
         // Product 엔티티 Page를 ProductResponse DTO Page로 변환하여 반환
         return productPage.map(ProductResponse::from);
+    }
+
+    /* ==========================
+        5. 상품 숨김 처리 (Hide)
+    ========================== */
+    /**
+     * 특정 상품의 상태를 숨김(pStatus=false)으로 변경합니다.
+     */
+    @Transactional
+    public void hideProduct(UUID pId) {
+        Product product = productRepository.findById(pId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + pId));
+
+        // 엔티티의 비즈니스 메서드를 호출하여 상태 변경
+        product.setHidden(true);
+
+        // @Transactional에 의해 변경 내용이 자동으로 DB에 반영됨 (더티 체킹)
     }
 
 
