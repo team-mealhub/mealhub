@@ -3,6 +3,8 @@ package com.mealhub.backend.global.infrastructure.config.security;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthenticationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthorizationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
+import com.mealhub.backend.global.infrastructure.config.security.jwt.handler.JwtAccessDeniedHandler;
+import com.mealhub.backend.global.infrastructure.config.security.jwt.handler.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,8 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -58,6 +62,13 @@ public class SecurityConfig {
         // JWT 방식 사용을 위한 설정
         http.sessionManagement((sessionManagement) ->
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+
+        // 인증·인가 예외 핸들러 등록
+        http.exceptionHandling((exceptions) ->
+                exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
         );
 
         http.authorizeHttpRequests((authorizeHttpRequests) ->
