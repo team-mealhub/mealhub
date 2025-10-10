@@ -13,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -47,13 +48,12 @@ public class CartItemController {
         return cartItemService.updateCartItemQuantity(userDetails.getId(), cartItemId, request);
     }
 
-    @PatchMapping("/{ct_id}/buying")
-    public CartItemResponse updateCartItemBuying(
+    @PatchMapping("/buying")
+    public List<CartItemResponse> updateCartItemBuying(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @PathVariable("ct_id") UUID cartItemId,
             @RequestBody CartItemUpdateRequest.Buying request
     ) {
-        return cartItemService.updateCartItemBuying(userDetails.getId(), cartItemId, request);
+        return cartItemService.updateCartItemsBuying(userDetails.getId(), request);
     }
 
     @DeleteMapping("/{ct_id}")

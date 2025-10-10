@@ -1,6 +1,7 @@
 package com.mealhub.backend.cart.application.service;
 
 import com.mealhub.backend.cart.domain.entity.CartItem;
+import com.mealhub.backend.cart.domain.enums.CartItemStatus;
 import com.mealhub.backend.cart.domain.exception.CartItemNotFoundException;
 import com.mealhub.backend.cart.infrastructure.repository.CartItemRepository;
 import com.mealhub.backend.cart.presentation.dto.request.CartItemCreateRequest;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -41,7 +43,7 @@ public class CartItemService {
 
     @Transactional(readOnly = true)
     public CartResponse getCartItems(Long userId, Pageable pageable) {
-        Page<CartItem> cartItems = cartItemRepository.findByUserIdAndBuyingIsFalseAndDeletedAtIsNull(userId, pageable);
+        Page<CartItem> cartItems = cartItemRepository.findByUserIdAndStatusAndBuyingIsFalseAndDeletedAtIsNull(userId, CartItemStatus.CART, pageable);
 
         long totalPrice = cartItems.stream()
                 .mapToLong(cartItem -> cartItem.getProduct().getPPrice() * cartItem.getQuantity())
@@ -60,12 +62,15 @@ public class CartItemService {
     }
 
     @Transactional
-    public CartItemResponse updateCartItemBuying(Long userId, UUID cartItemId, CartItemUpdateRequest.Buying request) {
-        CartItem cartItem = getCartItemById(cartItemId);
-        cartItem.validateOwnership(userId);
+    public List<CartItemResponse> updateCartItemsBuying(Long userId, CartItemUpdateRequest.Buying request) {
+        List<CartItem> cartItems = cartItemRepository.findAllById(request.getCt_ids());
 
-        cartItem.updateBuying(request.isBuying());
-        return new CartItemResponse(cartItem);
+        cartItems.forEach(cartItem -> {
+            cartItem.validateOwnership(userId);
+            cartItem.updateBuying(request.isBuying());
+        });
+
+        return cartItems.stream().map(CartItemResponse::new).toList();
     }
 
     @Transactional

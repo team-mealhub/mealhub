@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.UUID;
+
 public class CartItemUpdateRequest {
 
     @Getter
@@ -20,6 +23,7 @@ public class CartItemUpdateRequest {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor
     public static class Buying {
+        List<UUID> ct_ids;
         private boolean buying;
     }
 }
