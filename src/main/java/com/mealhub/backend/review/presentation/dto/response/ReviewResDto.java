@@ -12,18 +12,30 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReviewResDto {
     @JsonProperty("rv_id")
     private UUID reviewId;
+
     @JsonProperty("u_id")
     private Long userId;
+
     @JsonProperty("rv_star")
     private short star;
+
     @JsonProperty("rv_comment")
     private String comment;
+
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
+
+    @JsonProperty("created_by")
+    private Long createdBy;
+
     @JsonProperty("updated_at")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime updatedAt;
+
+    @JsonProperty("updated_by")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long updatedBy;
 }

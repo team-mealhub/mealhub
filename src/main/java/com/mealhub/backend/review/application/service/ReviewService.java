@@ -39,14 +39,16 @@ public class ReviewService {
         ReviewEntity reviewEntity = reviewRepository.save(
                 ReviewEntity.from(user, restaurant, createDto.getStar(), createDto.getComment())
         );
-        var updated = reviewEntity.getUpdatedAt() != null ? reviewEntity.getUpdatedAt() : reviewEntity.getCreatedAt();
+
         return new ReviewResDto(
                 reviewEntity.getId(),
                 reviewEntity.getUser().getId(),
                 reviewEntity.getStar(),
                 reviewEntity.getComment(),
                 reviewEntity.getCreatedAt(),
-                updated
+                reviewEntity.getCreatedBy(),
+                reviewEntity.getUpdatedAt(),
+                reviewEntity.getUpdatedBy()
         );
     }
 

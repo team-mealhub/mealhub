@@ -57,7 +57,8 @@ public class ReviewEntity extends BaseAuditEntity {
     }
 
     public static ReviewEntity from(User user, RestaurantEntity restaurant, short star, String comment) {
-        return new ReviewEntity(user, restaurant, star, comment);
+        String safeComment = (comment == null) ? "" : comment.trim(); // null -> "", 공백 제거
+        return new ReviewEntity(user, restaurant, star, safeComment);
     }
 
 }
