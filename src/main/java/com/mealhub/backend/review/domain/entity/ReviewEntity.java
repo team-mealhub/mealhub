@@ -61,5 +61,14 @@ public class ReviewEntity extends BaseAuditEntity {
         return new ReviewEntity(user, restaurant, star, safeComment);
     }
 
+    public void update(Short star, String comment) {
+        if (star != null) {
+            this.star = star;
+        }
+        if (comment != null) {
+            this.comment = comment.trim();
+        }
+    }
+
 }
 

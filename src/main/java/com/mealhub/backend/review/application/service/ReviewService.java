@@ -1,10 +1,14 @@
 package com.mealhub.backend.review.application.service;
 
+import com.mealhub.backend.global.domain.exception.ForbiddenException;
+import com.mealhub.backend.global.domain.exception.NotFoundException;
+import com.mealhub.backend.global.domain.exception.UnAuthorizedException;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
 import com.mealhub.backend.review.infrastructure.repository.ReviewRepository;
 import com.mealhub.backend.review.presentation.dto.request.ReviewCreateDto;
+import com.mealhub.backend.review.presentation.dto.request.ReviewUpdateDto;
 import com.mealhub.backend.review.presentation.dto.response.ReviewListItemDto;
 import com.mealhub.backend.review.presentation.dto.response.ReviewResDto;
 import com.mealhub.backend.user.domain.entity.User;
@@ -65,8 +69,8 @@ public class ReviewService {
 
         Sort baseSort = switch ((sort == null || sort.isBlank()) ? "latest" : sort) {
             case "rating_desc" -> Sort.by(DESC, "star");
-            case "rating_asc"  -> Sort.by(ASC,  "star");
-            default            -> Sort.by(DESC, "createdAt");
+            case "rating_asc" -> Sort.by(ASC, "star");
+            default -> Sort.by(DESC, "createdAt");
         };
 
         Sort finalSort = pageable.getSort().isSorted() ? pageable.getSort() : baseSort;
@@ -77,5 +81,21 @@ public class ReviewService {
                 .map(ReviewListItemDto::from);
     }
 
+    @Transactional
+    public ReviewResDto updateReview(ReviewUpdateDto reviewUpdateDto) {
+        Long currentUserId = auditorAware.getCurrentAuditor()
+                .orElseThrow(() -> new UnAuthorizedException("UNAUTHORIZED"));
+
+        var review = reviewRepository.findByIdAndDeletedAtIsNull(reviewUpdateDto.getReviewId())
+                .orElseThrow(() -> new NotFoundException("REVIEW_NOT_FOUND"));
+
+        if (!review.getUser().getId().equals(currentUserId)) {
+            throw new ForbiddenException("NOT_REVIEW_OWNER");
+        }
+
+        review.update(reviewUpdateDto.getStar(), reviewUpdateDto.getComment());
+
+        return ReviewResDto.from(review);
+    }
 
 }
