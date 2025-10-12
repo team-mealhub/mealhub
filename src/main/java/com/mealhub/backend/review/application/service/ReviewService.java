@@ -5,17 +5,18 @@ import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantReposi
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
 import com.mealhub.backend.review.infrastructure.repository.ReviewRepository;
 import com.mealhub.backend.review.presentation.dto.request.ReviewCreateDto;
+import com.mealhub.backend.review.presentation.dto.response.ReviewListItemDto;
 import com.mealhub.backend.review.presentation.dto.response.ReviewResDto;
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import static org.springframework.data.domain.Sort.Direction.*;
 
 import java.util.UUID;
 
@@ -59,5 +60,22 @@ public class ReviewService {
                 .orElseThrow(() -> new com.mealhub.backend.global.domain.exception.NotFoundException("REVIEW_NOT_FOUND"));
         return ReviewResDto.from(review);
     }
+
+    public Page<ReviewListItemDto> getListReviews(UUID restaurantId, String sort, Pageable pageable) {
+
+        Sort baseSort = switch ((sort == null || sort.isBlank()) ? "latest" : sort) {
+            case "rating_desc" -> Sort.by(DESC, "star");
+            case "rating_asc"  -> Sort.by(ASC,  "star");
+            default            -> Sort.by(DESC, "createdAt");
+        };
+
+        Sort finalSort = pageable.getSort().isSorted() ? pageable.getSort() : baseSort;
+        PageRequest pageReq = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), finalSort);
+
+        return reviewRepository
+                .findByRestaurant_RestaurantIdAndDeletedAtIsNull(restaurantId, pageReq)
+                .map(ReviewListItemDto::from);
+    }
+
 
 }
