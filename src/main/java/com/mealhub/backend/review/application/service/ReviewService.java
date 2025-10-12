@@ -35,13 +35,13 @@ public class ReviewService {
     @Transactional
     public ReviewResDto createReview(UUID restaurantId, ReviewCreateDto createDto) {
         Long currentUserId = auditorAware.getCurrentAuditor()
-                .orElseThrow(() -> new AccessDeniedException("UNAUTHORIZED"));
+                .orElseThrow(() -> new UnAuthorizedException("UNAUTHORIZED"));
 
         User user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new EntityNotFoundException("USER_NOT_FOUND"));
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND"));
 
         RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new EntityNotFoundException("RESTAURANT_NOT_FOUND"));
+                .orElseThrow(() -> new NotFoundException("RESTAURANT_NOT_FOUND"));
 
         ReviewEntity reviewEntity = reviewRepository.save(
                 ReviewEntity.from(user, restaurant, createDto.getStar(), createDto.getComment())
@@ -61,7 +61,7 @@ public class ReviewService {
 
     public ReviewResDto getReview(UUID reviewId) {
         var review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
-                .orElseThrow(() -> new com.mealhub.backend.global.domain.exception.NotFoundException("REVIEW_NOT_FOUND"));
+                .orElseThrow(() -> new NotFoundException("REVIEW_NOT_FOUND"));
         return ReviewResDto.from(review);
     }
 
