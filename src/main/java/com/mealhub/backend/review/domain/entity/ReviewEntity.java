@@ -70,5 +70,11 @@ public class ReviewEntity extends BaseAuditEntity {
         }
     }
 
+    public void softDelete(Long deletedBy) {
+        this.setDeletedAt(java.time.LocalDateTime.now());
+        this.setDeletedBy(deletedBy);
+    }
+
+
 }
 

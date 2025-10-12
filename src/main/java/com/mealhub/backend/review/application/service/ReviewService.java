@@ -13,12 +13,16 @@ import com.mealhub.backend.review.presentation.dto.response.ReviewListItemDto;
 import com.mealhub.backend.review.presentation.dto.response.ReviewResDto;
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import com.mealhub.backend.user.domain.enums.UserRole;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import static org.springframework.data.domain.Sort.Direction.*;
 
@@ -96,6 +100,35 @@ public class ReviewService {
         review.update(reviewUpdateDto.getStar(), reviewUpdateDto.getComment());
 
         return ReviewResDto.from(review);
+    }
+
+    @Transactional
+    public ReviewResDto deleteReview(UUID reviewId) {
+        Long currentUserId = auditorAware.getCurrentAuditor()
+                .orElseThrow(() -> new AccessDeniedException("UNAUTHORIZED"));
+
+        ReviewEntity review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
+                .orElseThrow(() -> new com.mealhub.backend.global.domain.exception.NotFoundException("REVIEW_NOT_FOUND"));
+
+        boolean isOwner = review.getUser().getId().equals(currentUserId);
+        boolean isManager = hasManagerRole();
+
+        if (!(isOwner || isManager)) {
+            throw new ForbiddenException("NOT_REVIEW_OWNER_OR_MANAGER");
+        }
+
+        review.softDelete(currentUserId);
+        return ReviewResDto.from(review);
+    }
+
+    private boolean hasManagerRole() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+
+        String need = UserRole.ROLE_MANAGER.name();
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(need::equals);
     }
 
 }

@@ -53,4 +53,9 @@ public class ReviewController {
     public ResponseEntity<ReviewResDto> updateReview(@RequestBody @Valid ReviewUpdateDto reviewUpdateDto) {
         return ResponseEntity.ok(reviewService.updateReview(reviewUpdateDto));
     }
+
+    @DeleteMapping("/{rv_id}")
+    public ResponseEntity<ReviewResDto> deleteReview(@PathVariable("rv_id") UUID reviewId) {
+        return ResponseEntity.ok(reviewService.deleteReview(reviewId));
+    }
 }
