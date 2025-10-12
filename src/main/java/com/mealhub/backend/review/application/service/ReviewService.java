@@ -9,11 +9,13 @@ import com.mealhub.backend.review.presentation.dto.response.ReviewResDto;
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -50,6 +52,12 @@ public class ReviewService {
                 reviewEntity.getUpdatedAt(),
                 reviewEntity.getUpdatedBy()
         );
+    }
+
+    public ReviewResDto getReview(UUID reviewId) {
+        var review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
+                .orElseThrow(() -> new com.mealhub.backend.global.domain.exception.NotFoundException("REVIEW_NOT_FOUND"));
+        return ReviewResDto.from(review);
     }
 
 }
