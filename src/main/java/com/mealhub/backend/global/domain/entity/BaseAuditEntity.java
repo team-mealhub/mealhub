@@ -21,5 +21,5 @@ public abstract class BaseAuditEntity extends BaseTimeEntity {
     @Column(insertable = false)
     private Long updatedBy;
 
-    private Long deletedBy;
+    protected Long deletedBy;
 }

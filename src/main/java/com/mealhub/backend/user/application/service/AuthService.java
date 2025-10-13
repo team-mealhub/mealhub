@@ -1,6 +1,7 @@
 package com.mealhub.backend.user.application.service;
 
 import com.mealhub.backend.user.domain.entity.User;
+import com.mealhub.backend.user.domain.exception.UserDuplicateException;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class AuthService {
         String userId = request.getUserId();
 
         if (userRepository.existsByUserId(userId)) {
-            throw new RuntimeException("User Already Exists Temporary message");
+            throw new UserDuplicateException();
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());

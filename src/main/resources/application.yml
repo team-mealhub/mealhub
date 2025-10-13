@@ -7,14 +7,24 @@ spring:
     username: ${db.username}
     password: ${db.password}
   jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
     hibernate:
       ddl-auto: ${db.ddl-auto}
-    show-sql: true
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     generate-ddl: true
+
 service:
   jwt:
     secret-key: ${jwt.secret-key}
     access-expiration: ${jwt.access-expiration}
+
+logging:
+  level:
+    org:
+      hibernate:
+        type: trace
+        binder: trace
