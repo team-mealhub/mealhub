@@ -1,5 +1,7 @@
 package com.mealhub.backend.restaurant.application.service;
 
+import static org.springframework.util.StringUtils.hasText;
+
 import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
 import com.mealhub.backend.global.domain.exception.CommonException;
@@ -14,6 +16,9 @@ import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +43,7 @@ public class RestaurantService {
     @Transactional
     public RestaurantResponse createRestaurant(
             RestaurantRequest restaurantRequest,
-            String userId, // TODO : userId 타입 변경 예정 (String -> Long)
+            Long userId,
             UserRole role
     ) {
         // 권한 확인 : 가게 주인 or 관리자만 생성 가능
@@ -47,7 +52,7 @@ public class RestaurantService {
         }
 
         // RestaurantEntity 생성
-        User findUser = findUser(1L); // TODO : userId로 변경
+        User findUser = findUser(userId);
 
         Address findAddress = addressRepository.findById(restaurantRequest.getAddressId())
                 .orElseThrow(() -> new CommonException("존재하지 않는 주소입니다.",
@@ -66,4 +71,60 @@ public class RestaurantService {
 
         return RestaurantResponse.from(save);
     }
+
+    // TODO : 가게 조회
+
+    // TODO : 가게 수정
+
+    // TODO : 가게 삭제
+
+    // 가게 검색
+    @Transactional(readOnly = true)
+    public Page<RestaurantResponse> searchRestaurants(String keyword, int page, int size,
+            String sortBy, boolean isAsc) {
+
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+
+        Page<RestaurantEntity> pageResult;
+
+        if (hasText(keyword)) {
+            String kw = keyword.trim();
+
+            if ("createdAt".equals(sortBy)) {
+                pageResult = isAsc
+                        ? restaurantRepository.findByKeywordOrderByCreatedAtAsc(kw, pageable)
+                        : restaurantRepository.findByKeywordOrderByCreatedAtDesc(kw, pageable);
+            } else if ("updatedAt".equals(sortBy)) {
+                pageResult = isAsc
+                        ? restaurantRepository.findByKeywordOrderByUpdatedAtAtAsc(kw, pageable)
+                        : restaurantRepository.findByKeywordOrderByUpdatedAtDesc(kw, pageable);
+            } else {
+                pageResult = isAsc
+                        ? restaurantRepository.findByKeywordOrderByCreatedAtAsc(kw, pageable)
+                        : restaurantRepository.findByKeywordOrderByCreatedAtDesc(kw, pageable);
+            }
+
+        } else {
+            if ("createdAt".equals(sortBy)) {
+                pageResult = isAsc
+                        ? restaurantRepository.findAllByOrderByCreatedAtAsc(pageable)
+                        : restaurantRepository.findAllByOrderByCreatedAtDesc(pageable);
+            } else if ("updatedAt".equals(sortBy)) {
+                pageResult = isAsc
+                        ? restaurantRepository.findAllByOrderByUpdatedAtAsc(pageable)
+                        : restaurantRepository.findAllByOrderByUpdatedAtDesc(pageable);
+            } else {
+                pageResult = isAsc
+                        ? restaurantRepository.findAllByOrderByCreatedAtAsc(pageable)
+                        : restaurantRepository.findAllByOrderByCreatedAtDesc(pageable);
+            }
+        }
+
+        return pageResult.map(RestaurantResponse::from);
+    }
+
+    // TODO : 가게 상태 변경
 }

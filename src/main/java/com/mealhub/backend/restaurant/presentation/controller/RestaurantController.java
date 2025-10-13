@@ -10,13 +10,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,19 +30,37 @@ public class RestaurantController {
 
     private final RestaurantService restaurantService;
 
-    @GetMapping
+    @PostMapping
     @Operation(summary = "가게 등록")
     @ResponseStatus(HttpStatus.CREATED)
     public RestaurantResponse createRestaurant(
             @Valid @RequestBody RestaurantRequest restaurantRequest,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
     ) {
-        // TODO : 권한 확인 리팩토링
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
-        UserRole role = principal.getRole();
+        UserRole role = userDetailsImpl.getRole();
 
-        return restaurantService.createRestaurant(restaurantRequest, userDetailsImpl.getUserId(),
+        return restaurantService.createRestaurant(restaurantRequest, userDetailsImpl.getId(),
                 role);
     }
+
+    // TODO : 가게 조회
+
+    // TODO : 가게 수정
+
+    // TODO : 가게 삭제
+
+    @GetMapping("/search")
+    @Operation(summary = "가게 검색")
+    @ResponseStatus(HttpStatus.OK)
+    public Page<RestaurantResponse> searchRestaurants(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam("page") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "5") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc
+    ) {
+        return restaurantService.searchRestaurants(keyword, page - 1, size, sortBy, isAsc);
+    }
+
+    // TODO : 가게 상태 변경
 }
