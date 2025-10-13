@@ -1,8 +1,5 @@
 package com.mealhub.backend.global.infrastructure.config.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mealhub.backend.global.domain.application.libs.MessageUtils;
-import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthenticationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthorizationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +25,6 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
-    private final AuthenticationConfiguration authenticationConfiguration;
-
-    private final ObjectMapper objectMapper;
-    private final MessageUtils messageUtils;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -41,13 +34,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
-    }
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, objectMapper, messageUtils);
-        filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
-        return filter;
     }
 
     @Bean
@@ -73,8 +59,7 @@ public class SecurityConfig {
         );
 
         // 필터 등록
-        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
