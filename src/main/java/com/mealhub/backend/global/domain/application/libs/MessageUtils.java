@@ -52,12 +52,18 @@ public class MessageUtils {
         }
     }
 
+    public List<String> getMessages(List<String> codes) {
+        return codes == null
+                ? null
+                : codes.stream().map(this::getMessage)
+                    .filter(StringUtils::hasText)
+                    .toList();
+    }
+
     public List<String> getMessages(String[] codes) {
         return codes == null
                 ? null
-                : Arrays.stream(codes).map(this::getMessage)
-                    .filter(StringUtils::hasText)
-                    .toList();
+                : getMessages(Arrays.asList(codes));
     }
 
     public Map<String, List<String>> getErrorMessages(Errors errors) {
