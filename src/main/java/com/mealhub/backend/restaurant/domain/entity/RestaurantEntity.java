@@ -73,4 +73,13 @@ public class RestaurantEntity extends BaseAuditEntity {
                 .status(false)
                 .build();
     }
+
+    // 가게 정보 수정 메서드
+    public void updateRestaurant(RestaurantRequest restaurantRequest, Address address,
+            RestaurantCategoryEntity category) {
+        this.address = address;
+        this.name = restaurantRequest.getName();
+        this.description = restaurantRequest.getDescription();
+        this.category = category;
+    }
 }

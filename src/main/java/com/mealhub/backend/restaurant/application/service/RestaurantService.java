@@ -40,21 +40,16 @@ public class RestaurantService {
                         HttpStatus.BAD_REQUEST));
     }
 
-    // 가게 등록
-    @Transactional
-    public RestaurantResponse createRestaurant(
-            RestaurantRequest restaurantRequest,
-            Long userId,
-            UserRole role
-    ) {
-        // 권한 확인 : 가게 주인 or 관리자만 생성 가능
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException();
-        }
+    // 등록된 가게 확인 메서드
+    private RestaurantEntity findRestaurant(UUID restaurantId) {
+        return restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new CommonException("존재하지 않는 가게입니다.",
+                        HttpStatus.BAD_REQUEST));
+    }
 
-        // 인증된 사용자 확인
-        User findUser = findUser(userId);
-
+    // 등록된 주소 확인 및 소유자 확인 메서드
+    private Address findAddressAndOwner(RestaurantRequest restaurantRequest,
+            Long userId) {
         // 주소 존재 확인
         Address findAddress = addressRepository.findById(restaurantRequest.getAddressId())
                 .orElseThrow(() -> new CommonException("존재하지 않는 주소입니다.",
@@ -65,11 +60,39 @@ public class RestaurantService {
             throw new CommonException("본인의 주소만 등록할 수 있습니다.", HttpStatus.FORBIDDEN);
         }
 
-        // 카테고리 존재 확인
-        RestaurantCategoryEntity findCategory = restaurantCategoryRepository.findById(
+        return findAddress;
+    }
+
+    // 등록된 카테고리 확인 메서드
+    private RestaurantCategoryEntity findCategory(RestaurantRequest restaurantRequest) {
+        return restaurantCategoryRepository.findById(
                         restaurantRequest.getCategoryId())
                 .orElseThrow(() -> new CommonException("존재하지 않는 카테고리입니다.",
                         HttpStatus.BAD_REQUEST));
+    }
+
+    // 가게 등록
+    @Transactional
+    public RestaurantResponse createRestaurant(
+            RestaurantRequest restaurantRequest,
+            Long userId,
+            UserRole role
+    ) {
+
+        // 권한 확인 : 가게 주인 or 관리자만 생성 가능
+        if (role.equals(UserRole.ROLE_CUSTOMER)) {
+            throw new ForbiddenException();
+        }
+
+        // 인증된 사용자 확인
+        User findUser = findUser(userId);
+
+        // 등록된 주소 확인 및 소유자 확인
+        Address findAddress = findAddressAndOwner(restaurantRequest,
+                userId);
+
+        // 등록된 카테고리 확인
+        RestaurantCategoryEntity findCategory = findCategory(restaurantRequest);
 
         // RestaurantEntity 생성
         RestaurantEntity restaurantEntity = RestaurantEntity.of(restaurantRequest, findUser,
@@ -84,16 +107,41 @@ public class RestaurantService {
     // 가게 단건 조회
     @Transactional(readOnly = true)
     public RestaurantResponse getRestaurant(UUID restaurantId) {
+
         // 가게 존재 확인
-        RestaurantEntity restaurantEntity = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new CommonException("존재하지 않는 가게입니다.",
-                        HttpStatus.BAD_REQUEST));
+        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
 
         return RestaurantResponse.from(restaurantEntity);
 
     }
 
-    // TODO : 가게 수정
+    // 가게 수정
+    public RestaurantResponse updateRestaurant(UUID restaurantId,
+            RestaurantRequest restaurantRequest, Long userId, UserRole role) {
+
+        // 권한 확인 : 가게 주인 or 관리자만 생성 가능
+        if (role.equals(UserRole.ROLE_CUSTOMER)) {
+            throw new ForbiddenException();
+        }
+
+        // 인증된 사용자 확인
+        User findUser = findUser(userId);
+
+        // 가게 존재 확인
+        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+
+        // 등록된 주소 확인 및 소유자 확인
+        Address address = findAddressAndOwner(restaurantRequest,
+                userId);
+
+        // 등록된 카테고리 확인
+        RestaurantCategoryEntity category = findCategory(restaurantRequest);
+
+        // 가게 정보 수정
+        restaurantEntity.updateRestaurant(restaurantRequest, address, category);
+
+        return RestaurantResponse.from(restaurantEntity);
+    }
 
     // TODO : 가게 삭제
 

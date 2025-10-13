@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,7 +54,19 @@ public class RestaurantController {
         return restaurantService.getRestaurant(restaurantId);
     }
 
-    // TODO : 가게 수정
+    @PatchMapping("/{restaurantId}")
+    @Operation(summary = "가게 수정")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantResponse updateRestaurant(
+            @PathVariable UUID restaurantId,
+            @Valid @RequestBody RestaurantRequest restaurantRequest,
+            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+    ) {
+        UserRole role = userDetailsImpl.getRole();
+        Long userId = userDetailsImpl.getId();
+
+        return restaurantService.updateRestaurant(restaurantId, restaurantRequest, userId, role);
+    }
 
     // TODO : 가게 삭제
 
