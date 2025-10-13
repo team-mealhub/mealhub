@@ -51,11 +51,6 @@ public class Product extends BaseAuditEntity {
                 .build();
     }
 
-
-    /* ==========================
-          비즈니스 메서드
-       ========================== */
-
     /**
      * 음식 정보 수정 (이름, 설명, 가격)
      */
@@ -66,7 +61,6 @@ public class Product extends BaseAuditEntity {
         this.pDescription = description;
         this.pPrice = price;
     }
-
 
     /**
      * 음식 숨김 상태 처리 (true = 음식이 보여짐 , false = 음식 숨김 처리)
