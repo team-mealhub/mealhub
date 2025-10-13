@@ -110,12 +110,7 @@ public class ReviewService {
         ReviewEntity review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
                 .orElseThrow(() -> new NotFoundException("REVIEW_NOT_FOUND"));
 
-        boolean isOwner = review.getUser().getId().equals(currentUserId);
-        boolean isManager = hasManagerRole();
-
-        if (!(isOwner || isManager)) {
-            throw new ForbiddenException("NOT_REVIEW_OWNER_OR_MANAGER");
-        }
+        checkOwnerOrManager(review.getUser().getId(), currentUserId);
 
         review.softDelete(currentUserId);
         return ReviewResDto.from(review);
