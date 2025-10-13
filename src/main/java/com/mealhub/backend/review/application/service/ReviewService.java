@@ -93,9 +93,7 @@ public class ReviewService {
         var review = reviewRepository.findByIdAndDeletedAtIsNull(reviewUpdateDto.getReviewId())
                 .orElseThrow(() -> new NotFoundException("REVIEW_NOT_FOUND"));
 
-        if (!review.getUser().getId().equals(currentUserId)) {
-            throw new ForbiddenException("NOT_REVIEW_OWNER");
-        }
+        checkOwnerOrManager(review.getUser().getId(), currentUserId);
 
         review.update(reviewUpdateDto.getStar(), reviewUpdateDto.getComment());
 
