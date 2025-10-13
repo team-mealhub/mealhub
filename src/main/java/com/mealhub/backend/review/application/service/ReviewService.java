@@ -121,6 +121,15 @@ public class ReviewService {
         return ReviewResDto.from(review);
     }
 
+    // 작성자 본인 또는 ROLE_MANAGET 권한이 있어야 통과
+    private void checkOwnerOrManager(Long ownerUserId, Long currentUserId) {
+        boolean isOwner = ownerUserId.equals(currentUserId);
+        boolean isManager = hasManagerRole();
+        if (!(isOwner || isManager)) {
+            throw new ForbiddenException("NOT_REVIEW_OWNER_OR_MANAGER");
+        }
+    }
+
     private boolean hasManagerRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) return false;
