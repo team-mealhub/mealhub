@@ -22,8 +22,6 @@ public class PaymentController {
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size
     ) {
-        System.out.println("page = " + page);
-        System.out.println("size = " + size);
         return paymentService.getPaymentLogs(request, page, size);
     }
 }
