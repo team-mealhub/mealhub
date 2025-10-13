@@ -108,7 +108,7 @@ public class ReviewService {
                 .orElseThrow(() -> new AccessDeniedException("UNAUTHORIZED"));
 
         ReviewEntity review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
-                .orElseThrow(() -> new com.mealhub.backend.global.domain.exception.NotFoundException("REVIEW_NOT_FOUND"));
+                .orElseThrow(() -> new NotFoundException("REVIEW_NOT_FOUND"));
 
         boolean isOwner = review.getUser().getId().equals(currentUserId);
         boolean isManager = hasManagerRole();
