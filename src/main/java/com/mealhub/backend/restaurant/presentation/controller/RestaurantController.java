@@ -9,11 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,12 +40,18 @@ public class RestaurantController {
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
     ) {
         UserRole role = userDetailsImpl.getRole();
+        Long userId = userDetailsImpl.getId();
 
-        return restaurantService.createRestaurant(restaurantRequest, userDetailsImpl.getId(),
-                role);
+        return restaurantService.createRestaurant(restaurantRequest, userId, role);
     }
 
-    // TODO : 가게 조회
+    @GetMapping("/{restaurantId}")
+    @Operation(summary = "가게 단건 조회")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantResponse getRestaurant(@PathVariable UUID restaurantId) {
+
+        return restaurantService.getRestaurant(restaurantId);
+    }
 
     // TODO : 가게 수정
 

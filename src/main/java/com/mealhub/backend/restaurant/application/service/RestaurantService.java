@@ -15,6 +15,7 @@ import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantRespon
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,18 +52,26 @@ public class RestaurantService {
             throw new ForbiddenException();
         }
 
-        // RestaurantEntity 생성
+        // 인증된 사용자 확인
         User findUser = findUser(userId);
 
+        // 주소 존재 확인
         Address findAddress = addressRepository.findById(restaurantRequest.getAddressId())
                 .orElseThrow(() -> new CommonException("존재하지 않는 주소입니다.",
                         HttpStatus.BAD_REQUEST));
 
+        // 주소 소유자 확인
+        if (!findAddress.getUser().getId().equals(userId)) {
+            throw new CommonException("본인의 주소만 등록할 수 있습니다.", HttpStatus.FORBIDDEN);
+        }
+
+        // 카테고리 존재 확인
         RestaurantCategoryEntity findCategory = restaurantCategoryRepository.findById(
                         restaurantRequest.getCategoryId())
                 .orElseThrow(() -> new CommonException("존재하지 않는 카테고리입니다.",
                         HttpStatus.BAD_REQUEST));
 
+        // RestaurantEntity 생성
         RestaurantEntity restaurantEntity = RestaurantEntity.of(restaurantRequest, findUser,
                 findAddress, findCategory);
 
@@ -72,7 +81,17 @@ public class RestaurantService {
         return RestaurantResponse.from(save);
     }
 
-    // TODO : 가게 조회
+    // 가게 단건 조회
+    @Transactional(readOnly = true)
+    public RestaurantResponse getRestaurant(UUID restaurantId) {
+        // 가게 존재 확인
+        RestaurantEntity restaurantEntity = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new CommonException("존재하지 않는 가게입니다.",
+                        HttpStatus.BAD_REQUEST));
+
+        return RestaurantResponse.from(restaurantEntity);
+
+    }
 
     // TODO : 가게 수정
 
