@@ -33,7 +33,9 @@ public class AddressServiceTest {
     private AddressService addressService;
 
     private User mockUser;
+
     private Address mockAddress;
+
     private final UUID mockAddressId = UUID.randomUUID();
 
     @BeforeEach
@@ -48,28 +50,27 @@ public class AddressServiceTest {
     }
 
     @Test
-    @DisplayName("새로운 주소 생성 시 기존의 기본주소가 해제됨")
+    @DisplayName("새로운 주소 생성 시 기존의 기본주소 해제")
     void createNewAddress_ExistingDefault() {
-        AddressRequest newDefaultRequest = new AddressRequest(
-                "새로운 집", true, "새 로도명", null, 127.0, 37.0, "메모");
+        AddressRequest addressRequest = new AddressRequest("새로운 집", true, "새 로도명", null, 127.0, 37.0, "메모");
 
-        Address existingDefaultAddress = Address.builder()
+        Address address = Address.builder()
                 .user(mockUser)
                 .defaultAddress(true)
                 .build();
 
         when(addressRepository.existsByUserAndDefaultAddressTrue(any(User.class))).thenReturn(true);
-        when(addressRepository.findByUserAndDefaultAddressTrue(any(User.class))).thenReturn(Optional.of(existingDefaultAddress));
+        when(addressRepository.findByUserAndDefaultAddressTrue(any(User.class))).thenReturn(Optional.of(address));
         when(addressRepository.save(any(Address.class))).thenReturn(mockAddress);
 
-        addressService.create(mockUser, newDefaultRequest);
+        addressService.create(mockUser, addressRequest);
 
-        assertThat(existingDefaultAddress.isDefaultAddress()).isFalse();
+        assertThat(address.isDefaultAddress()).isFalse();
         verify(addressRepository, times(1)).save(any(Address.class));
     }
 
     @Test
-    @DisplayName("유효한 ID로 주소 조회 성공")
+    @DisplayName("유효 ID로 주소 조회 성공")
     void getAddressById_returnAddress() {
         when(addressRepository.findByIdAndUser(mockAddressId, mockUser)).thenReturn(Optional.of(mockAddress));
 
