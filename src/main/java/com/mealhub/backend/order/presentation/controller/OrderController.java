@@ -1,11 +1,13 @@
 package com.mealhub.backend.order.presentation.controller;
 
+import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
 import com.mealhub.backend.order.application.service.OrderService;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
+import com.mealhub.backend.user.domain.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -33,11 +34,10 @@ public class OrderController {
     @PostMapping
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     public ResponseEntity<OrderResponse> createOrder(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody OrderCreateRequest request
     ) {
-        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
-        Long userId = 1L;
+        Long userId = userDetails.getId();
         OrderResponse response = orderService.createOrder(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -45,8 +45,14 @@ public class OrderController {
     // 주문 단건 조회
     @GetMapping("/{o_id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER', 'OWNER')")
-    public ResponseEntity<OrderDetailResponse> getOrder(@PathVariable("o_id") UUID orderId) {
-        OrderDetailResponse response = orderService.getOrder(orderId);
+    public ResponseEntity<OrderDetailResponse> getOrder(
+            @PathVariable("o_id") UUID orderId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
+
+        OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole);
         return ResponseEntity.ok(response);
     }
 
@@ -59,9 +65,15 @@ public class OrderController {
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        Page<OrderResponse> response = orderService.searchOrders(uId, rId, status, from, to, pageable);
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
+
+        Page<OrderResponse> response = orderService.searchOrders(
+                uId, rId, status, from, to, pageable, currentUserId, userRole
+        );
         return ResponseEntity.ok(response);
     }
 
@@ -70,9 +82,12 @@ public class OrderController {
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable("o_id") UUID orderId,
-            @RequestBody OrderStatusUpdateRequest request
+            @RequestBody OrderStatusUpdateRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        OrderResponse response = orderService.updateOrderStatus(orderId, request);
+        Long currentUserId = userDetails.getId();
+
+        OrderResponse response = orderService.updateOrderStatus(orderId, request, currentUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -81,9 +96,11 @@ public class OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> cancelOrder(
             @PathVariable("o_id") UUID orderId,
-            @RequestParam(required = false, defaultValue = "변심") String reason
+            @RequestParam(required = false, defaultValue = "변심") String reason,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        OrderResponse response = orderService.cancelOrder(orderId, reason);
+        Long currentUserId = userDetails.getId();
+        OrderResponse response = orderService.cancelOrder(orderId, reason, currentUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -92,11 +109,12 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('MANAGER', 'OWNER')")
     public ResponseEntity<Void> deleteOrder(
             @PathVariable("o_id") UUID orderId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
-        // TODO: UserDetails에서 실제 userId 추출 (현재는 임시)
-        Long currentUserId = 1L;
-        orderService.deleteOrder(orderId, currentUserId);
+        Long currentUserId = userDetails.getId();
+        UserRole userRole = userDetails.getRole();
+
+        orderService.deleteOrder(orderId, currentUserId, userRole);
         return ResponseEntity.noContent().build();
     }
 }
