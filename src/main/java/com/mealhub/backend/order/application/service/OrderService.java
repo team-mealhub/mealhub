@@ -1,8 +1,8 @@
 package com.mealhub.backend.order.application.service;
 
 import com.mealhub.backend.global.domain.application.libs.MessageUtils;
-import com.mealhub.backend.global.domain.exception.ForbiddenException;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
+import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
@@ -35,7 +35,7 @@ public class OrderService {
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
         if (!orderInfo.getUserId().equals(currentUserId)) {
-            throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.Customer"));
+            throw new OrderForbiddenException(messageUtils.getMessage("Order.Forbidden.Customer"));
         }
     }
 
@@ -45,7 +45,7 @@ public class OrderService {
                 .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Restaurant.NotFound")));
 
         if (!restaurant.getUser().getId().equals(currentUserId)) {
-            throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.Owner"));
+            throw new OrderForbiddenException(messageUtils.getMessage("Order.Forbidden.Owner"));
         }
     }
 
@@ -97,7 +97,7 @@ public class OrderService {
             return OrderDetailResponse.from(orderInfo);
         }
 
-        throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.NoAuth"));
+        throw new OrderForbiddenException(messageUtils.getMessage("Order.Forbidden.NoAuth"));
     }
 
     // 주문 검색 (역할별 권한 필터 적용)
@@ -131,7 +131,7 @@ public class OrderService {
                         .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Restaurant.NotFound")));
 
                 if (!restaurant.getUser().getId().equals(currentUserId)) {
-                    throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.Owner"));
+                    throw new OrderForbiddenException(messageUtils.getMessage("Order.Forbidden.Owner"));
                 }
 
                 filteredRestaurantId = restaurantId;
@@ -139,7 +139,7 @@ public class OrderService {
                 // restaurantId가 없으면 본인 소유 모든 레스토랑의 주문 조회
                 // Repository 쿼리가 IN 절을 지원하지 않으므로, 여기서는 제한
                 // TODO: Repository에 restaurantIds IN 쿼리 추가 필요
-                throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.OwnerRestaurantId"));
+                throw new OrderForbiddenException(messageUtils.getMessage("Order.Forbidden.OwnerRestaurantId"));
             }
         }
 
@@ -196,6 +196,6 @@ public class OrderService {
             return;
         }
 
-        throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.NoAuth"));
+        throw new OrderForbiddenException(messageUtils.getMessage("Order.Forbidden.NoAuth"));
     }
 }
