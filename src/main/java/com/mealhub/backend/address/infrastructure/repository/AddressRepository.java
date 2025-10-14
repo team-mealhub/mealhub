@@ -3,6 +3,8 @@ package com.mealhub.backend.address.infrastructure.repository;
 import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.user.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,4 +29,16 @@ public interface AddressRepository extends JpaRepository<Address, UUID> {
 
     // 사용자 주소 삭제(id기준)
     void deleteByIdAndUser(UUID id, User user);
+
+
+    // 검색 기능(keyword포함 된 주소 조회)
+    @Query("""
+SELECT a FROM Address a WHERE a.user = :user
+AND (
+LOWER(a.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+OR LOWER(a.address) LIKE LOWER(CONCAT('%', :keyword, '%'))
+OR LOWER(a.oldAddress) LIKE LOWER(CONCAT('%', :keyword, '%'))
+)
+""")
+    List<Address> searchAddress(@Param("user") User user, @Param("keyword") String keyword);
 }
