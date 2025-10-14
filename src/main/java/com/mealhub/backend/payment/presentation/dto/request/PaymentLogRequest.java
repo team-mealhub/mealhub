@@ -2,6 +2,7 @@ package com.mealhub.backend.payment.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mealhub.backend.payment.domain.enums.PaymentStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,12 +35,15 @@ public class PaymentLogRequest {
     public static class Search {
 
         @JsonProperty("u_id")
+        @Schema(description = "유저 ID", example = "1")
         private Long userId;
 
         @JsonProperty("o_info_id")
+        @Schema(description = "주문 정보 ID", example = "00000000-0000-0000-0000-000000000001")
         private UUID orderId;
 
         @JsonProperty("py_status")
+        @Schema(description = "결제 상태", example = "COMPLETED")
         private PaymentStatus status;
 
         @AssertTrue
