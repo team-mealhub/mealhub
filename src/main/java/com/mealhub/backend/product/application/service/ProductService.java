@@ -1,9 +1,12 @@
 package com.mealhub.backend.product.application.service;
 
+import com.mealhub.backend.global.domain.exception.BadRequestException;
 import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
 import com.mealhub.backend.product.presentation.dto.response.ProductResponse;
+import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
+import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
+    private final RestaurantRepository restaurantRepository;
 
       /* ==========================
           1. 상품 생성 (Create)
@@ -25,10 +29,16 @@ public class ProductService {
 
 
     @Transactional
-    public ProductResponse createProduct(ProductRequest productRequest) {
-        // 1. DTO에서 엔티티로 변환
+    public ProductResponse createProduct(ProductRequest productRequest, Long userId) {
+
+        RestaurantEntity restaurant = restaurantRepository.findById(productRequest.getRId())
+                .orElseThrow(() -> new BadRequestException("유효하지 않은 레스토랑 ID입니다."));
+
+        validateRestaurantOwner(restaurant, userId);
+
+
         Product product = Product.createProduct(
-                productRequest.getRId(),
+                restaurant,
                 productRequest.getPName(),
                 productRequest.getPDescription(),
                 productRequest.getPPrice(),
@@ -62,10 +72,12 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse updateProduct(UUID pId, ProductRequest productRequest) {
+    public ProductResponse updateProduct(UUID pId, ProductRequest productRequest,Long userId) {
         // 1. 상품 조회 (없으면 예외 발생)
         Product product = productRepository.findById(pId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        validateRestaurantOwner(product.getRestaurant(), userId);
 
         // 2. 엔티티의 비즈니스 메서드를 이용한 정보 수정
         product.updateInfo(
@@ -84,10 +96,14 @@ public class ProductService {
     //상품 삭제
 
     @Transactional
-    public void deleteProduct(UUID pId) {
+    public void deleteProduct(UUID pId,Long userId) {
+
+        Product product = productRepository.findById(pId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        validateRestaurantOwner(product.getRestaurant(), userId);
         // 삭제 전 해당 상품이 존재하는지 확인하거나,
-        // 그냥 deleteById를 호출하여 예외를 잡는 방식도 가능합니다.
-        productRepository.deleteById(pId);
+             productRepository.deleteById(pId);
     }
 
 
@@ -102,17 +118,17 @@ public class ProductService {
 
 
 
-    public Page<ProductResponse> searchProducts(UUID rId, String keyword, Pageable pageable) {
+    public Page<ProductResponse> searchProducts(UUID restaurantId, String keyword, Pageable pageable) {
         Page<Product> productPage;
 
         String searchKeyword = (keyword != null && !keyword.isEmpty()) ? keyword.trim() : null;
 
-        if (rId != null && searchKeyword != null) {
+        if (restaurantId != null && searchKeyword != null) {
 
-            productPage = productRepository.findByRestaurantIdAndNameContainingIgnoreCase(rId, searchKeyword, pageable);
-        } else if (rId != null) {
+            productPage = productRepository.findByRestaurantIdAndNameContainingIgnoreCase(restaurantId, searchKeyword, pageable);
+        } else if (restaurantId != null) {
 
-            productPage = productRepository.findByRestaurantId(rId, pageable);
+            productPage = productRepository.findByRestaurantId(restaurantId, pageable);
         } else if (searchKeyword != null) {
             productPage = productRepository.findByNameContainingIgnoreCase(searchKeyword, pageable);
         } else {
@@ -126,10 +142,19 @@ public class ProductService {
     @Transactional
     public ProductResponse hideProduct(UUID pId) {
         Product product = productRepository.findById(pId)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + pId));
+                .orElseThrow(() -> new RuntimeException("Product not found with ID"));
                product.setHidden(true);
                return ProductResponse.from(product);
     }
+
+    private void validateRestaurantOwner(RestaurantEntity restaurantEntity,Long userId) {
+        if(!restaurantEntity.getUser().getId().equals(userId)) {
+            throw new BadRequestException("해당 상품에 대한 수정/삭제 권한이 없습니다.");
+        }
+    }
+
+
+
 
 
 

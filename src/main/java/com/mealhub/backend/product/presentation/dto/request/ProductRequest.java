@@ -23,7 +23,7 @@ public class ProductRequest {
     private String pName;
 
     @Size(max = 255, message = "상품 설명은 255자 이내로 입력해야 합니다.")
-    private String pDescription; // nullable=true 이므로 @NotBlank는 제외
+    private String pDescription;
 
     @NotNull(message = "상품 가격은 필수입니다.")
     @Positive(message = "상품 가격은 0보다 커야 합니다.")
