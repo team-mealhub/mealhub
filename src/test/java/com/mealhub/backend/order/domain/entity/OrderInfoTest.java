@@ -2,6 +2,7 @@ package com.mealhub.backend.order.domain.entity;
 
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.domain.exception.OrderCancelException;
+import com.mealhub.backend.order.domain.exception.OrderStatusTransitionException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -171,8 +172,7 @@ class OrderInfoTest {
 
         // when & then
         assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.DELIVERED, "배송 완료"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("PENDING 상태에서는");
+                .isInstanceOf(OrderStatusTransitionException.class);
     }
 
     @Test
@@ -197,8 +197,7 @@ class OrderInfoTest {
 
         // when & then
         assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.PENDING, "대기로 복귀"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("IN_PROGRESS 상태에서는");
+                .isInstanceOf(OrderStatusTransitionException.class);
     }
 
     @Test
@@ -226,8 +225,7 @@ class OrderInfoTest {
 
         // when & then
         assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.CANCELLED, "취소 시도"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("더 이상 변경할 수 없습니다");
+                .isInstanceOf(OrderStatusTransitionException.class);
     }
 
     @Test
@@ -239,7 +237,6 @@ class OrderInfoTest {
 
         // when & then
         assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "재시작 시도"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("더 이상 변경할 수 없습니다");
+                .isInstanceOf(OrderStatusTransitionException.class);
     }
 }
