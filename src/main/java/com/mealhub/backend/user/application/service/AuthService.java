@@ -2,6 +2,8 @@ package com.mealhub.backend.user.application.service;
 
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
 import com.mealhub.backend.user.domain.entity.User;
+import com.mealhub.backend.user.domain.enums.UserRole;
+import com.mealhub.backend.user.domain.exception.InvalidUserRoleException;
 import com.mealhub.backend.user.domain.exception.UserAuthenticationException;
 import com.mealhub.backend.user.domain.exception.UserDuplicateException;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
@@ -22,6 +24,10 @@ public class AuthService {
 
     @Transactional
     public void signUp(UserSignUpRequest request) {
+        if (request.getRole().equals(UserRole.ROLE_MANAGER)) {
+            throw new InvalidUserRoleException();
+        }
+
         String userId = request.getUserId();
 
         if (userRepository.existsByUserId(userId)) {
