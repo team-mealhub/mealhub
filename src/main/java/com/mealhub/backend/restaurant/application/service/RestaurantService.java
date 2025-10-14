@@ -71,6 +71,13 @@ public class RestaurantService {
                         HttpStatus.BAD_REQUEST));
     }
 
+    // 가게 소유자 확인
+    private void verifyOwner(RestaurantEntity restaurantEntity, Long userId) {
+        if (!restaurantEntity.getUser().getId().equals(userId)) {
+            throw new CommonException("본인의 가게만 수정할 수 있습니다.", HttpStatus.FORBIDDEN);
+        }
+    }
+
     // 가게 등록
     @Transactional
     public RestaurantResponse createRestaurant(
@@ -116,19 +123,23 @@ public class RestaurantService {
     }
 
     // 가게 수정
+    @Transactional
     public RestaurantResponse updateRestaurant(UUID restaurantId,
             RestaurantRequest restaurantRequest, Long userId, UserRole role) {
 
-        // 권한 확인 : 가게 주인 or 관리자만 생성 가능
+        // 권한 확인 : 가게 주인 or 관리자만 수정 가능
         if (role.equals(UserRole.ROLE_CUSTOMER)) {
             throw new ForbiddenException();
         }
 
         // 인증된 사용자 확인
-        User findUser = findUser(userId);
+        findUser(userId);
 
         // 가게 존재 확인
         RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+
+        // 가게 소유자 확인
+        verifyOwner(restaurantEntity, userId);
 
         // 등록된 주소 확인 및 소유자 확인
         Address address = findAddressAndOwner(restaurantRequest,
@@ -143,7 +154,27 @@ public class RestaurantService {
         return RestaurantResponse.from(restaurantEntity);
     }
 
-    // TODO : 가게 삭제
+    // 가게 삭제
+    @Transactional
+    public void deleteRestaurant(UUID restaurantId, Long userId, UserRole role) {
+
+        // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
+        if (role.equals(UserRole.ROLE_CUSTOMER)) {
+            throw new ForbiddenException();
+        }
+
+        // 인증된 사용자 확인
+        User findUser = findUser(userId);
+
+        // 가게 존재 확인
+        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+
+        // 가게 소유자 확인
+        verifyOwner(restaurantEntity, userId);
+
+        // 가게 삭제
+        restaurantRepository.delete(restaurantEntity);
+    }
 
     // 가게 검색
     @Transactional(readOnly = true)
