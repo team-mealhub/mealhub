@@ -14,7 +14,9 @@ import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +44,8 @@ public class CartItemService {
     }
 
     @Transactional(readOnly = true)
-    public CartResponse getCartItems(Long userId, Pageable pageable) {
+    public CartResponse getCartItems(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<CartItem> cartItems = cartItemRepository.findByUserIdAndStatusAndBuyingIsFalseAndDeletedAtIsNull(userId, CartItemStatus.CART, pageable);
 
         long totalPrice = cartItems.stream()
