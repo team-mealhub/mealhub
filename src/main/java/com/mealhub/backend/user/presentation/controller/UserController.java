@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,16 @@ public class UserController {
     private final UserService userService;
 
     @Operation(
+            summary = "현재 유저 정보 조회",
+            description = "로그인한 유저의 정보를 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "현재 유저 정보 조회 성공")
+    @GetMapping("/me")
+    public UserResponse getCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return userService.getUser(userDetails.getId());
+    }
+
+    @Operation(
             summary = "유저 정보 조회",
             description = "유저 ID로 유저 정보를 조회합니다."
     )
@@ -33,6 +44,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "유저 정보 조회 성공")
     @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음")
     @GetMapping("/{u_id}")
+    @PreAuthorize("hasRole('MANAGER')")
     public UserResponse getUser(@PathVariable(value = "u_id") Long id) {
         return userService.getUser(id);
     }
