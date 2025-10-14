@@ -10,6 +10,8 @@ import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
+import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
+import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class OrderService {
 
     private final OrderInfoRepository orderInfoRepository;
+    private final RestaurantRepository restaurantRepository;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
@@ -35,8 +38,11 @@ public class OrderService {
     }
 
     // 권한 검증: OWNER가 자신의 가게 주문인지 확인
-    private void validateOwnerRestaurant(OrderInfo orderInfo, UUID ownerRestaurantId) {
-        if (!orderInfo.getRestaurantId().equals(ownerRestaurantId)) {
+    private void validateOwnerRestaurant(OrderInfo orderInfo, Long currentUserId) {
+        RestaurantEntity restaurant = restaurantRepository.findById(orderInfo.getRestaurantId())
+                .orElseThrow(() -> new NotFoundException("레스토랑을 찾을 수 없습니다."));
+
+        if (!restaurant.getUser().getId().equals(currentUserId)) {
             throw new ForbiddenException("본인 가게의 주문만 접근할 수 있습니다.");
         }
     }
@@ -68,7 +74,7 @@ public class OrderService {
     }
 
     // 주문 단건 조회
-    public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, UserRole userRole, UUID ownerRestaurantId) {
+    public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, UserRole userRole) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
@@ -85,7 +91,7 @@ public class OrderService {
 
         // OWNER는 본인 가게 주문만 조회 가능
         if (UserRole.ROLE_OWNER.equals(userRole)) {
-            validateOwnerRestaurant(orderInfo, ownerRestaurantId);
+            validateOwnerRestaurant(orderInfo, currentUserId);
             return OrderDetailResponse.from(orderInfo);
         }
 
@@ -101,8 +107,7 @@ public class OrderService {
             LocalDateTime to,
             Pageable pageable,
             Long currentUserId,
-            UserRole userRole,
-            UUID ownerRestaurantId
+            UserRole userRole
     ) {
         // 역할별 필터링 적용
         Long filteredUserId = userId;
@@ -114,10 +119,26 @@ public class OrderService {
             filteredRestaurantId = null; // 고객은 레스토랑 필터 무시
         }
 
-        // OWNER: 본인 레스토랑 주문만 조회 (restaurantId 강제 설정)
+        // OWNER: 본인 레스토랑 주문만 조회
         if (UserRole.ROLE_OWNER.equals(userRole)) {
-            filteredRestaurantId = ownerRestaurantId;
             filteredUserId = null; // 점주는 사용자 필터 무시
+
+            // restaurantId가 지정된 경우, 해당 레스토랑의 소유자인지 확인
+            if (restaurantId != null) {
+                RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
+                        .orElseThrow(() -> new NotFoundException("레스토랑을 찾을 수 없습니다."));
+
+                if (!restaurant.getUser().getId().equals(currentUserId)) {
+                    throw new ForbiddenException("본인 가게의 주문만 조회할 수 있습니다.");
+                }
+
+                filteredRestaurantId = restaurantId;
+            } else {
+                // restaurantId가 없으면 본인 소유 모든 레스토랑의 주문 조회
+                // Repository 쿼리가 IN 절을 지원하지 않으므로, 여기서는 제한
+                // TODO: Repository에 restaurantIds IN 쿼리 추가 필요
+                throw new ForbiddenException("OWNER는 레스토랑 ID를 지정해야 합니다.");
+            }
         }
 
         // MANAGER: 모든 파라미터 그대로 사용 (전체 조회 가능)
@@ -130,12 +151,12 @@ public class OrderService {
 
     // 주문 상태 변경 (OWNER)
     @Transactional
-    public OrderResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, UUID ownerRestaurantId) {
+    public OrderResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, Long currentUserId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
         // OWNER는 본인 가게 주문만 상태 변경 가능
-        validateOwnerRestaurant(orderInfo, ownerRestaurantId);
+        validateOwnerRestaurant(orderInfo, currentUserId);
 
         orderInfo.updateStatus(request.getOStatus(), request.getReason());
         return OrderResponse.from(orderInfo);
@@ -156,7 +177,7 @@ public class OrderService {
 
     // 주문 삭제 (소프트 삭제)
     @Transactional
-    public void deleteOrder(UUID orderId, Long deletedBy, UserRole userRole, UUID ownerRestaurantId) {
+    public void deleteOrder(UUID orderId, Long deletedBy, UserRole userRole) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
 
@@ -168,7 +189,7 @@ public class OrderService {
 
         // OWNER는 본인 가게 주문만 삭제 가능
         if (UserRole.ROLE_OWNER.equals(userRole)) {
-            validateOwnerRestaurant(orderInfo, ownerRestaurantId);
+            validateOwnerRestaurant(orderInfo, deletedBy);
             orderInfo.delete(deletedBy);
             return;
         }
