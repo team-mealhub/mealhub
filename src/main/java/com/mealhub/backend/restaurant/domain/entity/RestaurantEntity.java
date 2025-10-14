@@ -1,6 +1,8 @@
 package com.mealhub.backend.restaurant.domain.entity;
 
+import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
+import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantRequest;
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,10 +34,9 @@ public class RestaurantEntity extends BaseAuditEntity {
     @JoinColumn(name = "u_id", nullable = false)
     private User user;
 
-//    ToDo: Address Entity 생성 후 주석 해제
-//    @OneToOne
-//    @JoinColumn(name = "a_id", nullable = false)
-//    private Address addressId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "a_id", nullable = false)
+    private Address address;
 
     @Column(name = "r_name", nullable = false, length = 20)
     private String name;
@@ -48,16 +49,42 @@ public class RestaurantEntity extends BaseAuditEntity {
     private RestaurantCategoryEntity category;
 
     @Column(name = "r_status")
-    private Boolean status;
+    private Boolean isOpen;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private RestaurantEntity(User user, String name, String description,
-            RestaurantCategoryEntity category, Boolean status) {
+    private RestaurantEntity(User user, Address address, String name, String description,
+            RestaurantCategoryEntity category, Boolean isOpen) {
         this.user = user;
-//        this.addressId = Address addressId;
+        this.address = address;
         this.name = name;
         this.description = description;
         this.category = category;
-        this.status = status;
+        this.isOpen = isOpen;
+    }
+
+    public static RestaurantEntity of(RestaurantRequest restaurantRequest, User user,
+            Address address, RestaurantCategoryEntity category) {
+        return RestaurantEntity.builder()
+                .user(user)
+                .address(address)
+                .name(restaurantRequest.getName())
+                .description(restaurantRequest.getDescription())
+                .category(category)
+                .isOpen(false)
+                .build();
+    }
+
+    // 가게 정보 수정 메서드
+    public void updateRestaurant(RestaurantRequest restaurantRequest, Address address,
+            RestaurantCategoryEntity category) {
+        this.address = address;
+        this.name = restaurantRequest.getName();
+        this.description = restaurantRequest.getDescription();
+        this.category = category;
+    }
+
+    // 가게 영업 상태 변경 메서드
+    public void changeStatus(Boolean isOpen) {
+        this.isOpen = isOpen;
     }
 }
