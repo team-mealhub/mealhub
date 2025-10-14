@@ -1,6 +1,7 @@
 package com.mealhub.backend.user.presentation.controller;
 
 import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
+import com.mealhub.backend.global.presentation.dto.ErrorResponse;
 import com.mealhub.backend.user.application.service.UserService;
 import com.mealhub.backend.user.presentation.dto.request.UserUpdateRequest;
 import com.mealhub.backend.user.presentation.dto.response.UserResponse;
@@ -8,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -42,7 +45,9 @@ public class UserController {
             @Parameter(name = "u_id", description = "조회할 유저의 ID", in = ParameterIn.PATH, required = true)
     })
     @ApiResponse(responseCode = "200", description = "유저 정보 조회 성공")
-    @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음")
+    @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+    )
     @GetMapping("/{u_id}")
     @PreAuthorize("hasRole('MANAGER')")
     public UserResponse getUser(@PathVariable(value = "u_id") Long id) {
@@ -54,7 +59,9 @@ public class UserController {
             description = "로그인한 유저의 정보를 수정합니다."
     )
     @ApiResponse(responseCode = "200", description = "유저 정보 수정 성공")
-    @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터")
+    @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터" ,
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+    )
     @PutMapping
     public UserResponse updateUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
