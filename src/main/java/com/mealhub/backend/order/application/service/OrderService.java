@@ -1,5 +1,7 @@
 package com.mealhub.backend.order.application.service;
 
+import com.mealhub.backend.address.domain.entity.Address;
+import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
 import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
@@ -32,6 +34,7 @@ public class OrderService {
     private final OrderInfoRepository orderInfoRepository;
     private final RestaurantRepository restaurantRepository;
     private final ProductRepository productRepository;
+    private final AddressRepository addressRepository;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
@@ -53,7 +56,19 @@ public class OrderService {
     // 주문 생성
     @Transactional
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
-        // 주문 정보 생성
+        // 1. Restaurant 검증 (존재 여부)
+        RestaurantEntity restaurant = restaurantRepository.findById(request.getRId())
+                .orElseThrow(() -> new OrderNotFoundException("Restaurant.NotFound"));
+
+        // 2. Address 검증 (존재 여부 및 소유권)
+        Address address = addressRepository.findById(request.getAId())
+                .orElseThrow(() -> new OrderNotFoundException("Address.NotFound"));
+
+        if (!address.getUser().getId().equals(userId)) {
+            throw new OrderForbiddenException("Address.Forbidden.NotOwned");
+        }
+
+        // 3. 주문 정보 생성
         OrderInfo orderInfo = OrderInfo.createOrder(
                 userId,
                 request.getRId(),
@@ -61,7 +76,7 @@ public class OrderService {
                 request.getORequirements()
         );
 
-        // 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
+        // 4. 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
         for (OrderCreateRequest.OrderItemRequest itemRequest : request.getItems()) {
             Product product = productRepository.findById(itemRequest.getPId())
                     .orElseThrow(() -> new OrderNotFoundException("Product.NotFound"));

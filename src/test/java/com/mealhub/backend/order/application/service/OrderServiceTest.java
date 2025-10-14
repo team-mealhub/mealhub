@@ -49,6 +49,9 @@ class OrderServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private com.mealhub.backend.address.infrastructure.repository.AddressRepository addressRepository;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -70,6 +73,18 @@ class OrderServiceTest {
         request.setAId(addressId);
         request.setORequirements("빨리 배달해주세요");
         request.setItems(List.of(itemRequest));
+
+        // Restaurant Mock 설정
+        RestaurantEntity restaurant = mock(RestaurantEntity.class);
+        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
+
+        // Address Mock 설정 (본인 주소)
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(userId);
+
+        com.mealhub.backend.address.domain.entity.Address address = mock(com.mealhub.backend.address.domain.entity.Address.class);
+        when(address.getUser()).thenReturn(user);
+        when(addressRepository.findById(addressId)).thenReturn(Optional.of(address));
 
         // Product Mock 설정
         Product product = mock(Product.class);
