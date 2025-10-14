@@ -1,5 +1,6 @@
 package com.mealhub.backend.cart.presentation.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mealhub.backend.cart.domain.enums.CartItemQuantityOperation;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,11 @@ public class CartItemUpdateRequest {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor
     public static class Quantity {
+
+        @JsonProperty("ct_quantity_operation")
         private CartItemQuantityOperation operation;
+
+        @JsonProperty("ct_quantity")
         private int quantity;
     }
 
@@ -23,7 +28,11 @@ public class CartItemUpdateRequest {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor
     public static class Buying {
-        List<UUID> ct_ids;
+
+        @JsonProperty("ct_ids")
+        List<UUID> cartItemIds;
+
+        @JsonProperty("ct_buying")
         private boolean buying;
     }
 }

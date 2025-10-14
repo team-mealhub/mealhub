@@ -32,7 +32,7 @@ public class CartItemService {
     @Transactional
     public CartItemResponse addCartItem(User user, CartItemCreateRequest request) {
         // TODO: Product 예외로 변경
-        Product product = productRepository.findById(request.getP_id())
+        Product product = productRepository.findById(request.getProductId())
                         .orElseThrow(NotFoundException::new);
 
         CartItem cartItem = CartItem.createCartItem(request, user, product);
@@ -63,7 +63,7 @@ public class CartItemService {
 
     @Transactional
     public List<CartItemResponse> updateCartItemsBuying(Long userId, CartItemUpdateRequest.Buying request) {
-        List<CartItem> cartItems = cartItemRepository.findAllById(request.getCt_ids());
+        List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
 
         cartItems.forEach(cartItem -> {
             cartItem.validateOwnership(userId);
