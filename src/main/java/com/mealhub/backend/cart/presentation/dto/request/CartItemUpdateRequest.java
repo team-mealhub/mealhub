@@ -1,6 +1,9 @@
 package com.mealhub.backend.cart.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +20,8 @@ public class CartItemUpdateRequest {
     public static class Quantity {
 
         @JsonProperty("ct_quantity")
+        @Min(1)
+        @Max(1000)
         private int quantity;
     }
 
@@ -26,7 +31,8 @@ public class CartItemUpdateRequest {
     public static class Buying {
 
         @JsonProperty("ct_ids")
-        List<UUID> cartItemIds;
+        @NotEmpty
+        private List<UUID> cartItemIds;
 
         @JsonProperty("ct_buying")
         private boolean buying;

@@ -6,6 +6,7 @@ import com.mealhub.backend.cart.presentation.dto.request.CartItemUpdateRequest;
 import com.mealhub.backend.cart.presentation.dto.response.CartItemResponse;
 import com.mealhub.backend.cart.presentation.dto.response.CartResponse;
 import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,7 +27,7 @@ public class CartItemController {
     @PostMapping
     public CartItemResponse addCartItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody CartItemCreateRequest request
+            @Valid @RequestBody CartItemCreateRequest request
     ) {
         return cartItemService.addCartItem(userDetails.toUser(), request);
     }
@@ -43,7 +44,7 @@ public class CartItemController {
     public CartItemResponse updateCartItemQuantity(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable("ct_id") UUID cartItemId,
-            @RequestBody CartItemUpdateRequest.Quantity request
+            @Valid @RequestBody CartItemUpdateRequest.Quantity request
     ) {
         return cartItemService.updateCartItemQuantity(userDetails.getId(), cartItemId, request);
     }
@@ -51,7 +52,7 @@ public class CartItemController {
     @PatchMapping("/buying")
     public List<CartItemResponse> updateCartItemBuying(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody CartItemUpdateRequest.Buying request
+            @Valid @RequestBody CartItemUpdateRequest.Buying request
     ) {
         return cartItemService.updateCartItemsBuying(userDetails.getId(), request);
     }
