@@ -4,8 +4,9 @@ import static org.springframework.util.StringUtils.hasText;
 
 import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
-import com.mealhub.backend.global.domain.exception.CommonException;
+import com.mealhub.backend.global.domain.exception.BadRequestException;
 import com.mealhub.backend.global.domain.exception.ForbiddenException;
+import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantCategoryEntity;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantCategoryRepository;
@@ -20,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,18 +33,23 @@ public class RestaurantService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
 
+    // 권한 확인 메서드
+    private void verifyRole(UserRole role) {
+        if (role.equals(UserRole.ROLE_CUSTOMER)) {
+            throw new ForbiddenException();
+        }
+    }
+
     // 인증된 사용자 확인 메서드
     private User findUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new CommonException("존재하지 않는 유저입니다.",
-                        HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 유저입니다."));
     }
 
     // 등록된 가게 확인 메서드
     private RestaurantEntity findRestaurant(UUID restaurantId) {
         return restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new CommonException("존재하지 않는 가게입니다.",
-                        HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new BadRequestException("존재하지 않는 가게입니다."));
     }
 
     // 등록된 주소 확인 및 소유자 확인 메서드
@@ -52,12 +57,11 @@ public class RestaurantService {
             Long userId) {
         // 주소 존재 확인
         Address findAddress = addressRepository.findById(restaurantRequest.getAddressId())
-                .orElseThrow(() -> new CommonException("존재하지 않는 주소입니다.",
-                        HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new BadRequestException("존재하지 않는 주소입니다."));
 
         // 주소 소유자 확인
         if (!findAddress.getUser().getId().equals(userId)) {
-            throw new CommonException("본인의 주소만 등록할 수 있습니다.", HttpStatus.FORBIDDEN);
+            throw new ForbiddenException("본인의 주소만 등록할 수 있습니다.");
         }
 
         return findAddress;
@@ -67,14 +71,13 @@ public class RestaurantService {
     private RestaurantCategoryEntity findCategory(RestaurantRequest restaurantRequest) {
         return restaurantCategoryRepository.findById(
                         restaurantRequest.getCategoryId())
-                .orElseThrow(() -> new CommonException("존재하지 않는 카테고리입니다.",
-                        HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new BadRequestException("존재하지 않는 카테고리입니다."));
     }
 
     // 가게 소유자 확인
     private void verifyOwner(RestaurantEntity restaurantEntity, Long userId) {
         if (!restaurantEntity.getUser().getId().equals(userId)) {
-            throw new CommonException("본인의 가게만 수정할 수 있습니다.", HttpStatus.FORBIDDEN);
+            throw new ForbiddenException("본인의 가게만 수정할 수 있습니다.");
         }
     }
 
@@ -87,9 +90,7 @@ public class RestaurantService {
     ) {
 
         // 권한 확인 : 가게 주인 or 관리자만 생성 가능
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException();
-        }
+        verifyRole(role);
 
         // 인증된 사용자 확인
         User findUser = findUser(userId);
@@ -128,9 +129,7 @@ public class RestaurantService {
             RestaurantRequest restaurantRequest, Long userId, UserRole role) {
 
         // 권한 확인 : 가게 주인 or 관리자만 수정 가능
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException();
-        }
+        verifyRole(role);
 
         // 인증된 사용자 확인
         findUser(userId);
@@ -159,12 +158,10 @@ public class RestaurantService {
     public void deleteRestaurant(UUID restaurantId, Long userId, UserRole role) {
 
         // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException();
-        }
+        verifyRole(role);
 
         // 인증된 사용자 확인
-        User findUser = findUser(userId);
+        findUser(userId);
 
         // 가게 존재 확인
         RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
@@ -231,9 +228,7 @@ public class RestaurantService {
             UserRole role) {
 
         // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException();
-        }
+        verifyRole(role);
 
         // 인증된 사용자 확인
         User findUser = findUser(userId);
