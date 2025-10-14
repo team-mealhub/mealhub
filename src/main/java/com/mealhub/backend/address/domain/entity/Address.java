@@ -44,6 +44,9 @@ public class Address extends BaseAuditEntity {
     @Column(name = "a_memo", length = 255)
     private String memo;
 
+    @Column(name = "a_deleted", nullable = false)
+    private boolean deleted = false;
+
     @Builder
     private Address(User user, String name, boolean defaultAddress, String address,
                     String oldAddress, Double longitude, Double latitude, String memo) {
@@ -70,5 +73,9 @@ public class Address extends BaseAuditEntity {
 
     public void changeDefault(boolean defaultAddress) {
         this.defaultAddress = defaultAddress;
+    }
+
+    public void softDelete() {
+        this.deleted = true;
     }
 }

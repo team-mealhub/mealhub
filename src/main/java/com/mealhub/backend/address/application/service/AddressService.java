@@ -25,8 +25,8 @@ public class AddressService {
     // 새 주소 생성(기본주소로 설정하면 기존기본주소 해제
     @Transactional
     public AddressResponse create(User user, AddressRequest addressRequest) {
-        if (addressRequest.isDefault() && addressRepository.existsByUserAndDefaultAddressTrue(user)) {
-            addressRepository.findByUserAndDefaultAddressTrue(user)
+        if (addressRequest.isDefault() && addressRepository.existsByUserAndDefaultAddressTrueAndDeletedFalse(user)) {
+            addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(user)
                     .ifPresent(address -> address.changeDefault(false));
         }
 
@@ -47,33 +47,31 @@ public class AddressService {
 
     // 주소 조회(단일)
     public AddressResponse getAddress(User user, UUID id) {
-        Address address = addressRepository.findByIdAndUser(id, user)
+        Address address = addressRepository.findByIdAndUserAndDeletedFalse(id, user)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
         return toResponse(address);
     }
 
-    // 전체 주소 조회(+검색, 키워드 없으면 전체 조회)
-    public List<AddressResponse> getAllAddresses(User user, String keyword) {
-        List<Address> result;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            result = addressRepository.searchAddress(user, keyword.trim());
+    // 전체 주소 조회(+검색, 페이징)
+    public Page<AddressResponse> getAllAddresses(User user, String keyword, Pageable pageable) {
+        Page<Address> result;
+        if (keyword != null && !keyword.trim().isBlank()) {
+            result = addressRepository.searchAddress(user, keyword.trim(), pageable);
         } else {
-            result = addressRepository.findByUser(user);
+            result = addressRepository.findByUserAndDeletedFalse(user, pageable);
         }
         return result
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+                .map(this::toResponse);
     }
 
     //주소 수정(기본주소로 설정하면 기존기본주소 해제
     @Transactional
     public AddressResponse updateAddress(User user, UUID id, AddressRequest addressRequest) {
-        Address address = addressRepository.findByIdAndUser(id, user)
+        Address address = addressRepository.findByIdAndUserAndDeletedFalse(id, user)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
-        if (addressRequest.isDefault() && addressRepository.existsByUserAndDefaultAddressTrue(user)) {
-            addressRepository.findByUserAndDefaultAddressTrue(user)
+        if (addressRequest.isDefault() && addressRepository.existsByUserAndDefaultAddressTrueAndDeletedFalse(user)) {
+            addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(user)
                     .ifPresent(address1 -> address1.changeDefault(false));
         }
 
@@ -95,16 +93,16 @@ public class AddressService {
     // 주소 삭제
     @Transactional
     public void deleteAddress(User user, UUID id) {
-        addressRepository.deleteByIdAndUser(id, user);
+        addressRepository.softDeleteByIdAndUser(id, user);
     }
 
     // 기존 주소 중 하나를 기본주소로 설정
     @Transactional
     public AddressResponse changeDefault(User user, UUID addressId) {
-        addressRepository.findByUserAndDefaultAddressTrue(user)
+        addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(user)
                 .ifPresent(address -> address.changeDefault(false));
 
-        Address target = addressRepository.findByIdAndUser(addressId, user)
+        Address target = addressRepository.findByIdAndUserAndDeletedFalse(addressId, user)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
         target.changeDefault(true);
