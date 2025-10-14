@@ -6,7 +6,6 @@ import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantRequest
 import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantResponse;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -36,7 +35,6 @@ public class RestaurantController {
     @PostMapping
     @Operation(summary = "가게 등록")
     @ResponseStatus(HttpStatus.CREATED)
-    @SecurityRequirement(name = "Bearer Authentication")
     public RestaurantResponse createRestaurant(
             @Valid @RequestBody RestaurantRequest restaurantRequest,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
@@ -58,7 +56,6 @@ public class RestaurantController {
     @PatchMapping("/{restaurantId}")
     @Operation(summary = "가게 수정")
     @ResponseStatus(HttpStatus.OK)
-    @SecurityRequirement(name = "Bearer Authentication")
     public RestaurantResponse updateRestaurant(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody RestaurantRequest restaurantRequest,
@@ -74,7 +71,6 @@ public class RestaurantController {
     @DeleteMapping("/{restaurantId}")
     @Operation(summary = "가게 삭제")
     @ResponseStatus(HttpStatus.OK)
-    @SecurityRequirement(name = "Bearer Authentication")
     public void deleteRestaurant(
             @PathVariable UUID restaurantId,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
@@ -102,7 +98,6 @@ public class RestaurantController {
     @PostMapping("/status/{restaurantId}")
     @Operation(summary = "가게 상태 변경 (영업중 / 준비중)")
     @ResponseStatus(HttpStatus.OK)
-    @SecurityRequirement(name = "Bearer Authentication")
     public RestaurantResponse changeRestaurantStatus(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody RestaurantRequest restaurantRequest,

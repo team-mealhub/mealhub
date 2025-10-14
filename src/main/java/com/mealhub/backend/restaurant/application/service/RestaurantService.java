@@ -227,7 +227,7 @@ public class RestaurantService {
             RestaurantRequest restaurantRequest, Long userId,
             UserRole role) {
 
-        // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
+        // 권한 확인 : 가게 주인 or 관리자만 변경 가능
         verifyRole(role);
 
         // 인증된 사용자 확인

@@ -1,5 +1,7 @@
 package com.mealhub.backend.restaurant.presentation.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -7,4 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RestaurantCategoryRequest {
 
+    @NotBlank
+    @Size(max = 20)
+    private String category;
 }
