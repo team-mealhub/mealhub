@@ -40,8 +40,10 @@ class OrderInfoTest {
     void addOrderItem_CalculatesTotal_Success() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        OrderItem item1 = OrderItem.createOrderItem("치킨", 20000L, 1L);
-        OrderItem item2 = OrderItem.createOrderItem("콜라", 2000L, 2L);
+        UUID productId1 = UUID.randomUUID();
+        UUID productId2 = UUID.randomUUID();
+        OrderItem item1 = OrderItem.createOrderItem(productId1, "치킨", 20000L, 1L);
+        OrderItem item2 = OrderItem.createOrderItem(productId2, "콜라", 2000L, 2L);
 
         // when
         orderInfo.addOrderItem(item1);
@@ -52,6 +54,8 @@ class OrderInfoTest {
         assertThat(orderInfo.getTotal()).isEqualTo(24000L); // 20000 + 2000*2
         assertThat(item1.getOrderInfo()).isEqualTo(orderInfo);
         assertThat(item2.getOrderInfo()).isEqualTo(orderInfo);
+        assertThat(item1.getProductId()).isEqualTo(productId1);
+        assertThat(item2.getProductId()).isEqualTo(productId2);
     }
 
     @Test
@@ -127,8 +131,8 @@ class OrderInfoTest {
     void calculateTotal_Success() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        OrderItem item1 = OrderItem.createOrderItem("상품1", 10000L, 2L);
-        OrderItem item2 = OrderItem.createOrderItem("상품2", 5000L, 3L);
+        OrderItem item1 = OrderItem.createOrderItem(UUID.randomUUID(), "상품1", 10000L, 2L);
+        OrderItem item2 = OrderItem.createOrderItem(UUID.randomUUID(), "상품2", 5000L, 3L);
 
         orderInfo.addOrderItem(item1);
         orderInfo.addOrderItem(item2);
