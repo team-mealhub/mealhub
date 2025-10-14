@@ -2,6 +2,7 @@ package com.mealhub.backend.payment.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mealhub.backend.payment.domain.enums.PaymentStatus;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,5 +41,10 @@ public class PaymentLogRequest {
 
         @JsonProperty("py_status")
         private PaymentStatus status;
+
+        @AssertTrue
+        private boolean isUserIdOrOrderIdProvided() {
+            return userId != null || orderId != null;
+        }
     }
 }
