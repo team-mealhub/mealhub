@@ -8,6 +8,9 @@ import com.mealhub.backend.cart.presentation.dto.response.CartResponse;
 import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
 import com.mealhub.backend.global.presentation.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -47,6 +50,10 @@ public class CartItemController {
             summary = "장바구니 아이템 조회",
             description = "로그인한 유저의 장바구니 아이템을 조회합니다."
     )
+    @Parameters({
+            @Parameter(name = "page", description = "페이지 번호", in = ParameterIn.QUERY),
+            @Parameter(name = "size", description = "페이지 크기", in = ParameterIn.QUERY)
+    })
     @ApiResponse(responseCode = "200", description = "장바구니 아이템 조회 성공")
     @GetMapping
     public CartResponse getCartItems(
@@ -61,6 +68,9 @@ public class CartItemController {
             summary = "장바구니 아이템 수량 변경",
             description = "장바구니 아이템의 수량을 변경합니다."
     )
+    @Parameters({
+            @Parameter(name = "ct_id", description = "수량을 변경할 장바구니 아이템의 ID", in = ParameterIn.PATH, required = true)
+    })
     @ApiResponse(responseCode = "200", description = "장바구니 아이템 수량 변경 성공")
     @ApiResponse(responseCode = "403", description = "장바구니 아이템에 대한 권한 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
@@ -94,6 +104,9 @@ public class CartItemController {
             summary = "장바구니 아이템 삭제",
             description = "장바구니 아이템을 삭제합니다."
     )
+    @Parameters({
+            @Parameter(name = "ct_id", description = "삭제할 장바구니 아이템의 ID", in = ParameterIn.PATH, required = true)
+    })
     @ApiResponse(responseCode = "200", description = "장바구니 아이템 삭제 성공")
     @ApiResponse(responseCode = "403", description = "장바구니 아이템에 대한 권한 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
