@@ -4,6 +4,7 @@ import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl
 import com.mealhub.backend.user.application.service.UserService;
 import com.mealhub.backend.user.presentation.dto.request.UserUpdateRequest;
 import com.mealhub.backend.user.presentation.dto.response.UserResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class UserController {
     @PutMapping
     public UserResponse updateUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody UserUpdateRequest request
+            @Valid @RequestBody UserUpdateRequest request
     ) {
         return userService.updateUser(userDetails.getId(), request);
     }

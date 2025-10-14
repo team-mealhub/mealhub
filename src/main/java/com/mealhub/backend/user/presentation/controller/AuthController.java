@@ -4,6 +4,7 @@ import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
 import com.mealhub.backend.user.application.service.AuthService;
 import com.mealhub.backend.user.presentation.dto.request.UserSignInRequest;
 import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signUp")
-    public void signUp(@RequestBody UserSignUpRequest request) {
+    public void signUp(@Valid @RequestBody UserSignUpRequest request) {
         authService.signUp(request);
     }
 
