@@ -7,6 +7,7 @@ import com.mealhub.backend.global.infrastructure.config.security.jwt.handler.Jwt
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -37,7 +38,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
+            throws Exception {
         return configuration.getAuthenticationManager();
     }
 
@@ -65,8 +67,25 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
-                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/api-docs.html").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/api-docs.html")
+                        .permitAll()
                         .requestMatchers("/v1/auth/**").permitAll()
+                        // Restaurant
+                        .requestMatchers(HttpMethod.POST, "/v1/restaurant/**")
+                        .hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/restaurant/**")
+                        .hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/restaurant/**")
+                        .hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/v1/restaurant/**").permitAll()
+                        // Restaurant Category
+                        .requestMatchers(HttpMethod.POST, "/v1/restaurant/category")
+                        .hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/restaurant/category/**")
+                        .hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/restaurant/category/**")
+                        .hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/v1/restaurant/category").permitAll()
                         .anyRequest().authenticated()
         );
 
