@@ -1,20 +1,20 @@
 package com.mealhub.backend.restaurant.presentation.controller;
 
-import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
 import com.mealhub.backend.restaurant.application.service.RestaurantCategoryService;
+import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryPatchRequest;
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryRequest;
 import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantCategoryResponse;
-import com.mealhub.backend.user.domain.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,15 +33,10 @@ public class RestaurantCategoryController {
     @Operation(summary = "가게 분류 추가")
     @ResponseStatus(HttpStatus.CREATED)
     public RestaurantCategoryResponse createRestaurantCategory(
-            @Valid @RequestBody RestaurantCategoryRequest restaurantCategoryRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @Valid @RequestBody RestaurantCategoryRequest restaurantCategoryRequest
     ) {
 
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
-
-        return restaurantCategoryService.createRestaurantCategory(restaurantCategoryRequest, role,
-                userId);
+        return restaurantCategoryService.createRestaurantCategory(restaurantCategoryRequest);
     }
 
     @GetMapping
@@ -56,26 +51,19 @@ public class RestaurantCategoryController {
     @Operation(summary = "가게 분류 수정")
     @ResponseStatus(HttpStatus.OK)
     public RestaurantCategoryResponse updateRestaurantCategory(
-            @Valid @RequestBody RestaurantCategoryRequest restaurantCategoryRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @Valid @RequestBody RestaurantCategoryPatchRequest restaurantCategoryPatchRequest,
+            @PathVariable UUID categoryId
     ) {
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
 
-        return restaurantCategoryService.updateRestaurantCategory(restaurantCategoryRequest, role,
-                userId);
+        return restaurantCategoryService.updateRestaurantCategory(restaurantCategoryPatchRequest,
+                categoryId);
     }
 
     @DeleteMapping("/{categoryId}")
     @Operation(summary = "가게 분류 삭제")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteRestaurantCategory(
-            @Valid @RequestBody RestaurantCategoryRequest restaurantCategoryRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
-    ) {
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
+    public void deleteRestaurantCategory(@PathVariable UUID categoryId) {
 
-        restaurantCategoryService.deleteRestaurantCategory(restaurantCategoryRequest, role, userId);
+        restaurantCategoryService.deleteRestaurantCategory(categoryId);
     }
 }

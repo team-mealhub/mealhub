@@ -3,14 +3,14 @@ package com.mealhub.backend.restaurant.application.service;
 import com.mealhub.backend.global.domain.exception.ForbiddenException;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantCategoryEntity;
+import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantCategoryRepository;
+import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
+import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryPatchRequest;
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryRequest;
 import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantCategoryResponse;
-import com.mealhub.backend.user.domain.entity.User;
-import com.mealhub.backend.user.domain.enums.UserRole;
-import com.mealhub.backend.user.infrastructure.repository.UserRepository;
-import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,31 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class RestaurantCategoryService {
 
     private final RestaurantCategoryRepository restaurantCategoryRepository;
-    private final UserRepository userRepository;
-
-    // 권한 확인 메서드 : ROLE_CUSTOMER는 접근 불가
-    private void verifyCustomerRole(UserRole role) {
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException("권한이 필요합니다.");
-        }
-    }
-
-    // 권한 확인 메서드 : ROLE_OWNER는 접근 불가
-    private void verifyOwnerRole(UserRole role) {
-        if (role.equals(UserRole.ROLE_OWNER)) {
-            throw new ForbiddenException("권한이 필요합니다.");
-        }
-    }
-
-    // 인증된 사용자 확인 메서드
-    private User findUser(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 유저입니다."));
-    }
+    private final RestaurantRepository restaurantRepository;
 
     // 등록된 가게 분류 확인 메서드
-    private RestaurantCategoryEntity findCategory(String category) {
-        return restaurantCategoryRepository.findByCategory(category)
+    private RestaurantCategoryEntity findCategory(UUID categoryId) {
+        return restaurantCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 가게 분류입니다."));
     }
 
@@ -59,22 +39,11 @@ public class RestaurantCategoryService {
     // 가게 분류 추가
     @Transactional
     public RestaurantCategoryResponse createRestaurantCategory(
-            RestaurantCategoryRequest restaurantCategoryRequest,
-            UserRole role, Long userId
+            RestaurantCategoryRequest restaurantCategoryRequest
     ) {
 
-        // 권한 확인 : MANAGER만 생성 가능
-        verifyCustomerRole(role);
-        verifyOwnerRole(role);
-
-        // 인증된 사용자 확인
-        findUser(userId);
-
         // 가게 분류 중복 확인
-        restaurantCategoryRepository.findByCategory(restaurantCategoryRequest.getCategory())
-                .ifPresent(category -> {
-                    throw new ForbiddenException("이미 존재하는 가게 분류입니다.");
-                });
+        verifyDuplicateCategory(restaurantCategoryRequest.getCategory());
 
         // 가게 분류 추가
         RestaurantCategoryEntity restaurantCategory = RestaurantCategoryEntity.of(
@@ -99,47 +68,36 @@ public class RestaurantCategoryService {
     // 가게 분류 수정
     @Transactional
     public RestaurantCategoryResponse updateRestaurantCategory(
-            @Valid RestaurantCategoryRequest restaurantCategoryRequest, UserRole role, Long userId
+            RestaurantCategoryPatchRequest restaurantCategoryPatchRequest,
+            UUID categoryId
     ) {
-        // 권한 확인 : MANAGER만 수정 가능
-        verifyCustomerRole(role);
-        verifyOwnerRole(role);
-
-        // 인증된 사용자 확인
-        findUser(userId);
 
         // 등록된 가게 분류 확인
-        RestaurantCategoryEntity category = findCategory(
-                restaurantCategoryRequest.getCategory());
+        RestaurantCategoryEntity category = findCategory(categoryId);
 
         // 가게 분류 중복 확인
-        verifyDuplicateCategory(restaurantCategoryRequest.getUpdatedCategory());
+        verifyDuplicateCategory(restaurantCategoryPatchRequest.getUpdatedCategory());
 
         // 가게 분류 수정
-        category.updateCategory(restaurantCategoryRequest);
+        category.updateCategory(restaurantCategoryPatchRequest);
 
         return RestaurantCategoryResponse.from(category);
     }
 
     // 가게 분류 삭제
     @Transactional
-    public void deleteRestaurantCategory(
-            RestaurantCategoryRequest restaurantCategoryRequest,
-            UserRole role,
-            Long userId
-    ) {
-        // 권한 확인 : MANAGER만 삭제 가능
-        verifyCustomerRole(role);
-        verifyOwnerRole(role);
-
-        // 인증된 사용자 확인
-        findUser(userId);
+    public void deleteRestaurantCategory(UUID categoryId) {
 
         // 등록된 가게 분류 확인
-        RestaurantCategoryEntity category = findCategory(
-                restaurantCategoryRequest.getCategory());
+        RestaurantCategoryEntity categoryEntity = findCategory(categoryId);
+
+        // 해당 카테고리를 사용하는 가게가 있는지 확인
+        List<RestaurantEntity> byCategory = restaurantRepository.findByCategory(categoryEntity);
+        if (!byCategory.isEmpty()) {
+            throw new ForbiddenException("해당 카테고리를 사용하는 가게가 존재합니다.");
+        }
 
         // 가게 분류 삭제
-        restaurantCategoryRepository.delete(category);
+        restaurantCategoryRepository.delete(categoryEntity);
     }
 }
