@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -37,16 +38,28 @@ public class CartItemService {
         Product product = productRepository.findById(request.getProductId())
                         .orElseThrow(NotFoundException::new);
 
-        CartItem cartItem = CartItem.createCartItem(request, user, product);
-        CartItem savedCartItem = cartItemRepository.save(cartItem);
+        CartItem cartItem;
 
-        return new CartItemResponse(savedCartItem);
+        if (request.getStatus() == CartItemStatus.CART && !request.isBuying()) {
+            Optional<CartItem> existingCartItem = cartItemRepository.findActiveCartItem(user.getId(), product.getPId(), CartItemStatus.CART, false);
+
+            if (existingCartItem.isPresent()) {
+                cartItem = existingCartItem.get();
+                cartItem.addQuantity(request.getQuantity());
+            } else {
+                cartItem = cartItemRepository.save(CartItem.createCartItem(request, user, product));
+            }
+        } else {
+            cartItem = cartItemRepository.save(CartItem.createCartItem(request, user, product));
+        }
+
+        return new CartItemResponse(cartItem);
     }
 
     @Transactional(readOnly = true)
     public CartResponse getCartItems(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<CartItem> cartItems = cartItemRepository.findByUserIdAndStatusAndBuyingIsFalseAndDeletedAtIsNull(userId, CartItemStatus.CART, pageable);
+        Page<CartItem> cartItems = cartItemRepository.findActiveCartItems(userId, CartItemStatus.CART, false, pageable);
 
         long totalPrice = cartItems.stream()
                 .mapToLong(cartItem -> cartItem.getProduct().getPPrice() * cartItem.getQuantity())

@@ -8,6 +8,8 @@ import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
 import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -66,6 +68,14 @@ public class CartItem extends BaseAuditEntity {
             throw CartItemInvalidQuantityException.tooLow();
         }
         this.quantity = quantity;
+    }
+
+    public void addQuantity(int quantity) {
+        int newQuantity = this.quantity + quantity;
+        if (newQuantity > 1000) {
+            throw CartItemInvalidQuantityException.tooHigh();
+        }
+        this.quantity = newQuantity;
     }
 
     public void updateBuying(boolean buying) {
