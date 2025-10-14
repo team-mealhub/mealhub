@@ -1,6 +1,7 @@
 package com.mealhub.backend.user.application.service;
 
 import com.mealhub.backend.user.domain.entity.User;
+import com.mealhub.backend.user.domain.exception.UserNotFoundException;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import com.mealhub.backend.user.presentation.dto.request.UserUpdateRequest;
 import com.mealhub.backend.user.presentation.dto.response.UserResponse;
@@ -45,6 +46,6 @@ public class UserService {
 
     private User getUserById(Long id) {
         return userRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new RuntimeException("Not Found User Temporary message"));
+                .orElseThrow(UserNotFoundException::new);
     }
 }

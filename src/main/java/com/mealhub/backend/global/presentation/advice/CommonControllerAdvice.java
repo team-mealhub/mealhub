@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice("com.mealhub.backend")
 @RequiredArgsConstructor
@@ -24,11 +26,20 @@ public class CommonControllerAdvice {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         Object message = e.getMessage();
 
-        if (e instanceof CommonException commonException) {
-            status = commonException.getStatus();
-            Map<String, List<String>> errorMessages = commonException.getErrorMessages();
+        return ResponseEntity
+                .status(status)
+                .body(new ErrorResponse(status, message));
+    }
 
-            if (errorMessages != null) { message = errorMessages; }
+    @ExceptionHandler(CommonException.class)
+    public ResponseEntity<ErrorResponse> commonErrorHandler(CommonException e) {
+        HttpStatus status = e.getStatus();
+        Object message;
+
+        if (e.getErrorMessages() != null && !e.getErrorMessages().isEmpty()) {
+            message = e.isErrorCode() ? convertErrorMessages(e.getErrorMessages()) : e.getErrorMessages();
+        } else {
+            message = e.isErrorCode() ? messageUtils.getMessage(e.getMessage()) : e.getMessage();
         }
 
         return ResponseEntity
@@ -41,5 +52,15 @@ public class CommonControllerAdvice {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse(HttpStatus.FORBIDDEN, messageUtils.getMessage("Forbidden")));
+    }
+  
+    private Map<String, List<String>> convertErrorMessages(Map<String, List<String>> errorMessages) {
+        return errorMessages.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> Optional.ofNullable(entry.getValue())
+                                .map(messageUtils::getMessages)
+                                .orElse(List.of())
+                ));
     }
 }

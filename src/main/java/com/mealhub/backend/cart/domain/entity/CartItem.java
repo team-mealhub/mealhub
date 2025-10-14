@@ -1,8 +1,12 @@
 package com.mealhub.backend.cart.domain.entity;
 
+import com.mealhub.backend.cart.domain.enums.CartItemQuantityOperation;
 import com.mealhub.backend.cart.domain.enums.CartItemStatus;
+import com.mealhub.backend.cart.domain.exception.CartItemForbiddenException;
+import com.mealhub.backend.cart.domain.exception.CartItemInvalidQuantityException;
 import com.mealhub.backend.cart.presentation.dto.request.CartItemCreateRequest;
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
+import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,8 +29,9 @@ public class CartItem extends BaseAuditEntity {
     @JoinColumn(name = "u_id")
     private User user;
 
-    @Column(name = "p_id")
-    private UUID productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "p_id")
+    private Product product;
 
     @Column(name = "ct_quantity")
     private int quantity;
@@ -37,22 +42,43 @@ public class CartItem extends BaseAuditEntity {
     @Column(name = "ct_is_buying")
     private boolean buying;
 
-    private CartItem(int quantity, CartItemStatus status) {
+    private CartItem(int quantity, CartItemStatus status, boolean buying) {
         this.quantity = quantity;
         this.status = status;
-        this.buying = false;
+        this.buying = buying;
     }
 
-    // TODO: product 연관관계 매핑
-    public static CartItem createCartItem(CartItemCreateRequest request, User user, UUID productId) {
+    public static CartItem createCartItem(CartItemCreateRequest request, User user, Product product) {
         CartItem cartItem = new CartItem(
                 request.getQuantity(),
-                request.getStatus()
+                request.getStatus(),
+                request.isBuying()
         );
 
         cartItem.user = user;
-        cartItem.productId = productId;
+        cartItem.product = product;
 
         return cartItem;
+    }
+
+    public void updateQuantity(CartItemQuantityOperation operation, int quantity) {
+        if (operation == CartItemQuantityOperation.INCREASE) {
+            this.quantity += quantity;
+        } else if (operation == CartItemQuantityOperation.DECREASE) {
+            if ((this.quantity - quantity) < 1) {
+                throw CartItemInvalidQuantityException.tooLow();
+            }
+            this.quantity -= quantity;
+        }
+    }
+
+    public void updateBuying(boolean buying) {
+        this.buying = buying;
+    }
+
+    public void validateOwnership(Long userId) {
+        if (!this.user.getId().equals(userId)) {
+            throw new CartItemForbiddenException();
+        }
     }
 }

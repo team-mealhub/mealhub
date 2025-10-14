@@ -49,12 +49,32 @@ public class ReviewEntity extends BaseAuditEntity {
     @Size(max = 500)
     private String comment = "";
 
-    public ReviewEntity(User user, RestaurantEntity restaurant, short star, String comment) {
+    private ReviewEntity(User user, RestaurantEntity restaurant, short star, String comment) {
         this.user = user;
         this.restaurant = restaurant;
         this.star = star;
-        this.comment = comment;
+        this.comment = (comment == null ? "" : comment);
     }
+
+    public static ReviewEntity from(User user, RestaurantEntity restaurant, short star, String comment) {
+        String safeComment = (comment == null) ? "" : comment.trim(); // null -> "", 공백 제거
+        return new ReviewEntity(user, restaurant, star, safeComment);
+    }
+
+    public void update(Short star, String comment) {
+        if (star != null) {
+            this.star = star;
+        }
+        if (comment != null) {
+            this.comment = comment.trim();
+        }
+    }
+
+    public void softDelete(Long deletedBy) {
+        this.setDeletedAt(java.time.LocalDateTime.now());
+        this.setDeletedBy(deletedBy);
+    }
+
 
 }
 
