@@ -1,6 +1,5 @@
 package com.mealhub.backend.global.infrastructure.config.security;
 
-import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthenticationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthorizationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
-    private final AuthenticationConfiguration authenticationConfiguration;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -36,13 +34,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
-    }
-
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil);
-        filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
-        return filter;
     }
 
     @Bean
@@ -62,13 +53,13 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
+                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/api-docs.html").permitAll()
                         .requestMatchers("/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
         );
 
         // 필터 등록
-        http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

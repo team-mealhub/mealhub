@@ -1,6 +1,7 @@
 package com.mealhub.backend.global.infrastructure.config.security;
 
 import com.mealhub.backend.user.domain.entity.User;
+import com.mealhub.backend.user.domain.exception.UserNotFoundException;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,9 +18,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUserId(username)
-                .orElseThrow(
-                        () -> new RuntimeException("Not Found User Temporary message")
-                );
+                .orElseThrow(UserNotFoundException::new);
 
         return UserDetailsImpl.from(user);
     }
