@@ -73,12 +73,58 @@ public class OrderInfo extends BaseAuditEntity {
     }
 
     public void updateStatus(OrderStatus newStatus, String reason) {
+        validateStatusTransition(this.status, newStatus);
+
         OrderStatus oldStatus = this.status;
         this.status = newStatus;
 
         // 상태 로그 생성
         OrderStatusLog log = OrderStatusLog.createLog(this, oldStatus, newStatus, reason);
         this.statusLogs.add(log);
+    }
+
+    /**
+     * 주문 상태 전이 규칙 검증
+     * - PENDING → IN_PROGRESS, CANCELLED
+     * - IN_PROGRESS → OUT_FOR_DELIVERY, CANCELLED
+     * - OUT_FOR_DELIVERY → DELIVERED, CANCELLED
+     * - DELIVERED, CANCELLED → (변경 불가)
+     */
+    private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        if (currentStatus == newStatus) {
+            return; // 동일한 상태로의 전이는 허용
+        }
+
+        switch (currentStatus) {
+            case PENDING:
+                if (newStatus != OrderStatus.IN_PROGRESS && newStatus != OrderStatus.CANCELLED) {
+                    throw new IllegalStateException(
+                            "PENDING 상태에서는 IN_PROGRESS 또는 CANCELLED로만 변경할 수 있습니다."
+                    );
+                }
+                break;
+            case IN_PROGRESS:
+                if (newStatus != OrderStatus.OUT_FOR_DELIVERY && newStatus != OrderStatus.CANCELLED) {
+                    throw new IllegalStateException(
+                            "IN_PROGRESS 상태에서는 OUT_FOR_DELIVERY 또는 CANCELLED로만 변경할 수 있습니다."
+                    );
+                }
+                break;
+            case OUT_FOR_DELIVERY:
+                if (newStatus != OrderStatus.DELIVERED && newStatus != OrderStatus.CANCELLED) {
+                    throw new IllegalStateException(
+                            "OUT_FOR_DELIVERY 상태에서는 DELIVERED 또는 CANCELLED로만 변경할 수 있습니다."
+                    );
+                }
+                break;
+            case DELIVERED:
+            case CANCELLED:
+                throw new IllegalStateException(
+                        currentStatus + " 상태의 주문은 더 이상 변경할 수 없습니다."
+                );
+            default:
+                throw new IllegalStateException("알 수 없는 주문 상태입니다: " + currentStatus);
+        }
     }
 
     public void cancel(String reason) {
