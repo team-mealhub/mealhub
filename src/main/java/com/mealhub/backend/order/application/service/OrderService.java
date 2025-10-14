@@ -1,5 +1,6 @@
 package com.mealhub.backend.order.application.service;
 
+import com.mealhub.backend.global.domain.application.libs.MessageUtils;
 import com.mealhub.backend.global.domain.exception.ForbiddenException;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
@@ -29,21 +30,22 @@ public class OrderService {
 
     private final OrderInfoRepository orderInfoRepository;
     private final RestaurantRepository restaurantRepository;
+    private final MessageUtils messageUtils;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
         if (!orderInfo.getUserId().equals(currentUserId)) {
-            throw new ForbiddenException("본인의 주문만 접근할 수 있습니다.");
+            throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.Customer"));
         }
     }
 
     // 권한 검증: OWNER가 자신의 가게 주문인지 확인
     private void validateOwnerRestaurant(OrderInfo orderInfo, Long currentUserId) {
         RestaurantEntity restaurant = restaurantRepository.findById(orderInfo.getRestaurantId())
-                .orElseThrow(() -> new NotFoundException("레스토랑을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Restaurant.NotFound")));
 
         if (!restaurant.getUser().getId().equals(currentUserId)) {
-            throw new ForbiddenException("본인 가게의 주문만 접근할 수 있습니다.");
+            throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.Owner"));
         }
     }
 
@@ -76,7 +78,7 @@ public class OrderService {
     // 주문 단건 조회
     public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, UserRole userRole) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Order.NotFound")));
 
         // MANAGER는 모든 주문 조회 가능
         if (UserRole.ROLE_MANAGER.equals(userRole)) {
@@ -95,7 +97,7 @@ public class OrderService {
             return OrderDetailResponse.from(orderInfo);
         }
 
-        throw new ForbiddenException("권한이 없습니다.");
+        throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.NoAuth"));
     }
 
     // 주문 검색 (역할별 권한 필터 적용)
@@ -126,10 +128,10 @@ public class OrderService {
             // restaurantId가 지정된 경우, 해당 레스토랑의 소유자인지 확인
             if (restaurantId != null) {
                 RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
-                        .orElseThrow(() -> new NotFoundException("레스토랑을 찾을 수 없습니다."));
+                        .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Restaurant.NotFound")));
 
                 if (!restaurant.getUser().getId().equals(currentUserId)) {
-                    throw new ForbiddenException("본인 가게의 주문만 조회할 수 있습니다.");
+                    throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.Owner"));
                 }
 
                 filteredRestaurantId = restaurantId;
@@ -137,7 +139,7 @@ public class OrderService {
                 // restaurantId가 없으면 본인 소유 모든 레스토랑의 주문 조회
                 // Repository 쿼리가 IN 절을 지원하지 않으므로, 여기서는 제한
                 // TODO: Repository에 restaurantIds IN 쿼리 추가 필요
-                throw new ForbiddenException("OWNER는 레스토랑 ID를 지정해야 합니다.");
+                throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.OwnerRestaurantId"));
             }
         }
 
@@ -153,7 +155,7 @@ public class OrderService {
     @Transactional
     public OrderResponse updateOrderStatus(UUID orderId, OrderStatusUpdateRequest request, Long currentUserId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Order.NotFound")));
 
         // OWNER는 본인 가게 주문만 상태 변경 가능
         validateOwnerRestaurant(orderInfo, currentUserId);
@@ -166,7 +168,7 @@ public class OrderService {
     @Transactional
     public OrderResponse cancelOrder(UUID orderId, String reason, Long currentUserId) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Order.NotFound")));
 
         // CUSTOMER는 본인 주문만 취소 가능
         validateCustomerOwnership(orderInfo, currentUserId);
@@ -179,7 +181,7 @@ public class OrderService {
     @Transactional
     public void deleteOrder(UUID orderId, Long deletedBy, UserRole userRole) {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
-                .orElseThrow(() -> new NotFoundException("주문을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException(messageUtils.getMessage("Order.NotFound")));
 
         // MANAGER는 모든 주문 삭제 가능
         if (UserRole.ROLE_MANAGER.equals(userRole)) {
@@ -194,6 +196,6 @@ public class OrderService {
             return;
         }
 
-        throw new ForbiddenException("권한이 없습니다.");
+        throw new ForbiddenException(messageUtils.getMessage("Order.Forbidden.NoAuth"));
     }
 }
