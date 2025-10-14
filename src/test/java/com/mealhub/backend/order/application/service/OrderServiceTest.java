@@ -242,7 +242,7 @@ class OrderServiceTest {
         when(ownerRestaurant.getUser()).thenReturn(ownerUser);
         when(restaurantRepository.findById(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
 
-        when(orderInfoRepository.searchOrders(isNull(), eq(ownerRestaurantId), isNull(), isNull(), isNull(), eq(pageable)))
+        when(orderInfoRepository.searchOrders(isNull(), eq(List.of(ownerRestaurantId)), isNull(), isNull(), isNull(), eq(pageable)))
                 .thenReturn(page);
 
         // when
@@ -252,7 +252,46 @@ class OrderServiceTest {
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(orderInfoRepository).searchOrders(isNull(), eq(ownerRestaurantId), isNull(), isNull(), isNull(), eq(pageable));
+        verify(orderInfoRepository).searchOrders(isNull(), eq(List.of(ownerRestaurantId)), isNull(), isNull(), isNull(), eq(pageable));
+    }
+
+    @Test
+    @DisplayName("주문 검색 - 성공 (OWNER 전체 레스토랑 조회)")
+    void searchOrders_Success_OwnerAllRestaurants() {
+        // given
+        Long currentUserId = 1L;
+        UserRole userRole = UserRole.ROLE_OWNER;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        UUID restaurant1Id = UUID.randomUUID();
+        UUID restaurant2Id = UUID.randomUUID();
+
+        RestaurantEntity restaurant1 = mock(RestaurantEntity.class);
+        when(restaurant1.getRestaurantId()).thenReturn(restaurant1Id);
+
+        RestaurantEntity restaurant2 = mock(RestaurantEntity.class);
+        when(restaurant2.getRestaurantId()).thenReturn(restaurant2Id);
+
+        // OWNER가 소유한 레스토랑 목록
+        when(restaurantRepository.findByUser_Id(currentUserId))
+                .thenReturn(List.of(restaurant1, restaurant2));
+
+        OrderInfo order1 = OrderInfo.createOrder(2L, restaurant1Id, UUID.randomUUID(), null);
+        OrderInfo order2 = OrderInfo.createOrder(3L, restaurant2Id, UUID.randomUUID(), null);
+        Page<OrderInfo> page = new PageImpl<>(List.of(order1, order2));
+
+        when(orderInfoRepository.searchOrders(isNull(), eq(List.of(restaurant1Id, restaurant2Id)), isNull(), isNull(), isNull(), eq(pageable)))
+                .thenReturn(page);
+
+        // when - restaurantId를 지정하지 않고 조회
+        Page<OrderResponse> result = orderService.searchOrders(
+                null, null, null, null, null, pageable, currentUserId, userRole
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
+        verify(restaurantRepository).findByUser_Id(currentUserId);
+        verify(orderInfoRepository).searchOrders(isNull(), eq(List.of(restaurant1Id, restaurant2Id)), isNull(), isNull(), isNull(), eq(pageable));
     }
 
     @Test

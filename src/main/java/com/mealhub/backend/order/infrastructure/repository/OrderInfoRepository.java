@@ -30,16 +30,17 @@ public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
     Page<OrderInfo> findByRestaurantIdAndStatus(UUID restaurantId, OrderStatus status, Pageable pageable);
 
     // 복합 검색 (사용자, 가게, 상태, 기간)
+    // restaurantIds가 null이면 무시, 비어있지 않으면 IN 절 적용
     @Query("SELECT o FROM OrderInfo o WHERE " +
             "(:userId IS NULL OR o.userId = :userId) AND " +
-            "(:restaurantId IS NULL OR o.restaurantId = :restaurantId) AND " +
+            "(:restaurantIds IS NULL OR o.restaurantId IN :restaurantIds) AND " +
             "(:status IS NULL OR o.status = :status) AND " +
             "(:from IS NULL OR o.createdAt >= :from) AND " +
             "(:to IS NULL OR o.createdAt <= :to) AND " +
             "o.deletedAt IS NULL")
     Page<OrderInfo> searchOrders(
             @Param("userId") Long userId,
-            @Param("restaurantId") UUID restaurantId,
+            @Param("restaurantIds") List<UUID> restaurantIds,
             @Param("status") OrderStatus status,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,

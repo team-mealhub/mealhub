@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -131,12 +132,12 @@ public class OrderService {
     ) {
         // 역할별 필터링 적용
         Long filteredUserId = userId;
-        UUID filteredRestaurantId = restaurantId;
+        List<UUID> filteredRestaurantIds = restaurantId != null ? List.of(restaurantId) : null;
 
         // CUSTOMER: 본인 주문만 조회 (userId 강제 설정)
         if (UserRole.ROLE_CUSTOMER.equals(userRole)) {
             filteredUserId = currentUserId;
-            filteredRestaurantId = null; // 고객은 레스토랑 필터 무시
+            filteredRestaurantIds = null; // 고객은 레스토랑 필터 무시
         }
 
         // OWNER: 본인 레스토랑 주문만 조회
@@ -152,19 +153,27 @@ public class OrderService {
                     throw new OrderForbiddenException("Order.Forbidden.Owner");
                 }
 
-                filteredRestaurantId = restaurantId;
+                filteredRestaurantIds = List.of(restaurantId);
             } else {
                 // restaurantId가 없으면 본인 소유 모든 레스토랑의 주문 조회
-                // Repository 쿼리가 IN 절을 지원하지 않으므로, 여기서는 제한
-                // TODO: Repository에 restaurantIds IN 쿼리 추가 필요
-                throw new OrderForbiddenException("Order.Forbidden.OwnerRestaurantId");
+                List<RestaurantEntity> ownedRestaurants = restaurantRepository.findByUser_Id(currentUserId);
+
+                if (ownedRestaurants.isEmpty()) {
+                    // 소유한 레스토랑이 없으면 빈 결과 반환
+                    filteredRestaurantIds = List.of();
+                } else {
+                    // 소유한 모든 레스토랑 ID 추출
+                    filteredRestaurantIds = ownedRestaurants.stream()
+                            .map(RestaurantEntity::getRestaurantId)
+                            .toList();
+                }
             }
         }
 
         // MANAGER: 모든 파라미터 그대로 사용 (전체 조회 가능)
 
         Page<OrderInfo> orders = orderInfoRepository.searchOrders(
-                filteredUserId, filteredRestaurantId, status, from, to, pageable
+                filteredUserId, filteredRestaurantIds, status, from, to, pageable
         );
         return orders.map(OrderResponse::from);
     }
