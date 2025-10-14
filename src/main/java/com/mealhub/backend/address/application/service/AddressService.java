@@ -6,6 +6,8 @@ import com.mealhub.backend.address.presentation.dto.request.AddressRequest;
 import com.mealhub.backend.address.presentation.dto.response.AddressResponse;
 import com.mealhub.backend.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,9 +52,16 @@ public class AddressService {
         return toResponse(address);
     }
 
-    // 전체 주소 조회
-    public List<AddressResponse> getAllAddresses(User user) {
-        return addressRepository.findByUser(user).stream()
+    // 전체 주소 조회(+검색, 키워드 없으면 전체 조회)
+    public List<AddressResponse> getAllAddresses(User user, String keyword) {
+        List<Address> result;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            result = addressRepository.searchAddress(user, keyword.trim());
+        } else {
+            result = addressRepository.findByUser(user);
+        }
+        return result
+                .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -78,6 +87,8 @@ public class AddressService {
                 addressRequest.getMemo()
         );
 
+        addressRepository.save(address);
+
         return toResponse(address);
     }
 
@@ -100,6 +111,8 @@ public class AddressService {
         return toResponse(target);
     }
 
+
+
     private AddressResponse toResponse(Address address) {
         return new AddressResponse(
                 address.getId(),
@@ -112,4 +125,5 @@ public class AddressService {
                 address.getMemo()
         );
     }
+
 }

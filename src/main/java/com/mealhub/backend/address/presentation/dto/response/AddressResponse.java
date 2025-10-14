@@ -1,5 +1,6 @@
 package com.mealhub.backend.address.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,6 +12,8 @@ public class AddressResponse {
 
     private UUID id;
     private String name;
+
+    @JsonProperty("isDefault")
     private boolean isDefault;
     private String address;
     private String oldAddress;
