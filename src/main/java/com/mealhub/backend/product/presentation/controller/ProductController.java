@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
 import java.util.UUID;
 
@@ -24,11 +25,11 @@ import java.util.UUID;
 @RequestMapping("/v1/product")
 
 public class ProductController {
+    // 음식 생성
     private final ProductService productservice;
 
-    // 1. 음식 생성 (Create) - 반환 타입: ResponseEntity<ProductResponse> (201 Created)
-    // POST /v1/product
-    @PostMapping
+     @PostMapping
+
     public ResponseEntity<ProductResponse> create(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody @Valid ProductRequest productRequest
@@ -40,17 +41,14 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponse);
     }
 
-
-    // 2. 음식 조회 (Read - by ID) - 반환 타입: ResponseEntity<ProductResponse>
-    // GET /v1/product/{pId}
+    // 2. 음식 조회
     @GetMapping("/{pId}")
     public ResponseEntity<ProductResponse> get(@PathVariable UUID pId) {
         ProductResponse productResponse = productservice.getProduct(pId);
         return ResponseEntity.ok(productResponse);
     }
 
-
-
+    // 음식 검색
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> search(
             @RequestParam(required = false) UUID restaurantId, // ⭐️ 이것이 올바른 타입입니다.
@@ -58,10 +56,11 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+         Pageable pageable = PageRequest.of(page, size);
         Page<ProductResponse> productPage = productservice.searchProducts(restaurantId, keyword, pageable);
         return ResponseEntity.ok(productPage);
     }
+
 
 
     // 4. 음식 수정 (Update) - 반환 타입: ResponseEntity<ProductResponse>
@@ -70,27 +69,26 @@ public class ProductController {
     public ResponseEntity<ProductResponse> update(
             @PathVariable UUID pId, // ⭐️ 수정할 상품 ID를 경로 변수로 받습니다.
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody @Valid ProductRequest productRequest // @Valid 추가
+            @RequestBody @Valid ProductRequest productRequest
     ) {
 
         ProductResponse productResponse = productservice.updateProduct(
                 pId,
                 productRequest,
-                userDetails.getId() // 소유권 확인을 위해 userId 전달
+                userDetails.getId()
         );
         return ResponseEntity.ok(productResponse);
     }
 
-    // 5. 음식 숨김 처리 (Hide) - 반환 타입: ResponseEntity<Void> (204 No Content)
-    // PATCH /v1/product/{pId}/hide
+
     @PatchMapping("/{pId}/hide")
-    public ResponseEntity<ProductResponse> hideProduct(@PathVariable UUID pId) {
-        ProductResponse productResponse = productservice.hideProduct(pId);
+    public ResponseEntity<ProductResponse> hideProduct(
+            @PathVariable UUID pId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        ProductResponse productResponse = productservice.hideProduct(pId, userDetails.getId());
         return ResponseEntity.ok(productResponse);
     }
 
-    // 6. 음식 삭제 (Delete) - 반환 타입: ResponseEntity<Void> (204 No Content)
-    // DELETE /v1/product/{id}
     @DeleteMapping("/{pId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID pId,
@@ -100,5 +98,3 @@ public class ProductController {
     }
 
 }
-
-

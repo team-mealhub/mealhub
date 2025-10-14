@@ -7,12 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.util.UUID;
 
 @Entity(name = "p_product")
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Builder
 public class Product extends BaseAuditEntity {
@@ -29,7 +26,7 @@ public class Product extends BaseAuditEntity {
     @Column(name = "p_name", length = 20, nullable = false)
     private String pName;
 
-      @Column(name = "p_description", length = 255, nullable = true)
+    @Column(name = "p_description", length = 255, nullable = true)
     private String pDescription;
 
     @Column(name = "p_price", nullable = false)
@@ -38,16 +35,18 @@ public class Product extends BaseAuditEntity {
     @Column(name = "p_status", nullable = false)
     private boolean pStatus;
 
-
     public static Product createProduct(RestaurantEntity restaurant, String pName, String pDescription, long pPrice, boolean pStatus) {
         return Product.builder()
+
                 .restaurant(restaurant) // 필드 이름도 'rId'에서 'restaurant'로 변경
                 .pName(pName)
                 .pDescription(pDescription)
                 .pPrice(pPrice)
                 .pStatus(pStatus)
                 .build();
+
     }
+
 
     /**
      * 음식 정보 수정 (이름, 설명, 가격)
@@ -60,10 +59,11 @@ public class Product extends BaseAuditEntity {
         this.pPrice = price;
     }
 
-    /**
-     * 음식 숨김 상태 처리 (true = 음식이 보여짐 , false = 음식 숨김 처리)
-     */
+
+
     public void setHidden(boolean isHidden) {
         this.pStatus = !isHidden;
     }
+
+
 }

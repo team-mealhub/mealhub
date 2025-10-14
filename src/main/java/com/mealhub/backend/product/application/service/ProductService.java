@@ -107,16 +107,6 @@ public class ProductService {
     }
 
 
-    // 모든 상품 목록 조회
-    @Transactional
-    public List<ProductResponse> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        return products.stream()
-                .map(ProductResponse::from)
-                .collect(Collectors.toList());
-    }
-
-
 
     public Page<ProductResponse> searchProducts(UUID restaurantId, String keyword, Pageable pageable) {
         Page<Product> productPage;
@@ -140,9 +130,10 @@ public class ProductService {
      * 특정 상품의 상태를 숨김(pStatus=false)으로 변경합니다.
      */
     @Transactional
-    public ProductResponse hideProduct(UUID pId) {
+    public ProductResponse hideProduct(UUID pId, Long userId) {
         Product product = productRepository.findById(pId)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID"));
+        validateRestaurantOwner(product.getRestaurant(), userId);
                product.setHidden(true);
                return ProductResponse.from(product);
     }
