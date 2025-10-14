@@ -67,7 +67,6 @@ public class RestaurantController {
         return restaurantService.updateRestaurant(restaurantId, restaurantRequest, userId, role);
     }
 
-    // 가게 삭제
     @DeleteMapping("/{restaurantId}")
     @Operation(summary = "가게 삭제")
     @ResponseStatus(HttpStatus.OK)
@@ -94,7 +93,6 @@ public class RestaurantController {
         return restaurantService.searchRestaurants(keyword, page - 1, size, sortBy, isAsc);
     }
 
-    // 가게 상태 변경
     @PostMapping("/status/{restaurantId}")
     @Operation(summary = "가게 상태 변경 (영업중 / 준비중)")
     @ResponseStatus(HttpStatus.OK)

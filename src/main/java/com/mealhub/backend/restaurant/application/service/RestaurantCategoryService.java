@@ -120,4 +120,26 @@ public class RestaurantCategoryService {
 
         return RestaurantCategoryResponse.from(category);
     }
+
+    // 가게 분류 삭제
+    @Transactional
+    public void deleteRestaurantCategory(
+            RestaurantCategoryRequest restaurantCategoryRequest,
+            UserRole role,
+            Long userId
+    ) {
+        // 권한 확인 : MANAGER만 삭제 가능
+        verifyCustomerRole(role);
+        verifyOwnerRole(role);
+
+        // 인증된 사용자 확인
+        findUser(userId);
+
+        // 등록된 가게 분류 확인
+        RestaurantCategoryEntity category = findCategory(
+                restaurantCategoryRequest.getCategory());
+
+        // 가게 분류 삭제
+        restaurantCategoryRepository.delete(category);
+    }
 }

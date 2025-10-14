@@ -12,6 +12,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,7 +52,7 @@ public class RestaurantCategoryController {
         return restaurantCategoryService.getRestaurantCategories();
     }
 
-    @PatchMapping("/categoryId")
+    @PatchMapping("/{categoryId}")
     @Operation(summary = "가게 분류 수정")
     @ResponseStatus(HttpStatus.OK)
     public RestaurantCategoryResponse updateRestaurantCategory(
@@ -63,5 +64,18 @@ public class RestaurantCategoryController {
 
         return restaurantCategoryService.updateRestaurantCategory(restaurantCategoryRequest, role,
                 userId);
+    }
+
+    @DeleteMapping("/{categoryId}")
+    @Operation(summary = "가게 분류 삭제")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteRestaurantCategory(
+            @Valid @RequestBody RestaurantCategoryRequest restaurantCategoryRequest,
+            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+    ) {
+        UserRole role = userDetailsImpl.getRole();
+        Long userId = userDetailsImpl.getId();
+
+        restaurantCategoryService.deleteRestaurantCategory(restaurantCategoryRequest, role, userId);
     }
 }
