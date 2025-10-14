@@ -21,7 +21,6 @@ public class Product extends BaseAuditEntity {
     @Column(name = "p_id", updatable = false, nullable = false)
     private UUID pId;
     @Column(name = "r_id", updatable = false, nullable = false)
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID rId;
     @Column(name = "p_name", length = 20, nullable = false)
     private String pName;
