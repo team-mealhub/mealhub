@@ -6,6 +6,7 @@ import com.mealhub.backend.global.presentation.dto.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -46,6 +47,13 @@ public class CommonControllerAdvice {
                 .body(new ErrorResponse(status, message));
     }
 
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException e) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(HttpStatus.FORBIDDEN, messageUtils.getMessage("Forbidden")));
+    }
+  
     private Map<String, List<String>> convertErrorMessages(Map<String, List<String>> errorMessages) {
         return errorMessages.entrySet().stream()
                 .collect(Collectors.toMap(
