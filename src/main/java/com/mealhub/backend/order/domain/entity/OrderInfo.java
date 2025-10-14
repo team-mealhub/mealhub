@@ -2,6 +2,7 @@ package com.mealhub.backend.order.domain.entity;
 
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
+import com.mealhub.backend.order.domain.exception.OrderCancelException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -129,7 +130,7 @@ public class OrderInfo extends BaseAuditEntity {
 
     public void cancel(String reason) {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("PENDING 상태의 주문만 취소할 수 있습니다.");
+            throw new OrderCancelException("Order.Cancel.OnlyPending");
         }
         updateStatus(OrderStatus.CANCELLED, reason);
     }
