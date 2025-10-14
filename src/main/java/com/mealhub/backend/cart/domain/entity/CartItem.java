@@ -1,6 +1,5 @@
 package com.mealhub.backend.cart.domain.entity;
 
-import com.mealhub.backend.cart.domain.enums.CartItemQuantityOperation;
 import com.mealhub.backend.cart.domain.enums.CartItemStatus;
 import com.mealhub.backend.cart.domain.exception.CartItemForbiddenException;
 import com.mealhub.backend.cart.domain.exception.CartItemInvalidQuantityException;
@@ -37,6 +36,7 @@ public class CartItem extends BaseAuditEntity {
     private int quantity;
 
     @Column(name = "ct_status")
+    @Enumerated(EnumType.STRING)
     private CartItemStatus status;
 
     @Column(name = "ct_is_buying")
@@ -61,15 +61,11 @@ public class CartItem extends BaseAuditEntity {
         return cartItem;
     }
 
-    public void updateQuantity(CartItemQuantityOperation operation, int quantity) {
-        if (operation == CartItemQuantityOperation.INCREASE) {
-            this.quantity += quantity;
-        } else if (operation == CartItemQuantityOperation.DECREASE) {
-            if ((this.quantity - quantity) < 1) {
-                throw CartItemInvalidQuantityException.tooLow();
-            }
-            this.quantity -= quantity;
+    public void updateQuantity(int quantity) {
+        if (quantity < 1) {
+            throw CartItemInvalidQuantityException.tooLow();
         }
+        this.quantity = quantity;
     }
 
     public void updateBuying(boolean buying) {
