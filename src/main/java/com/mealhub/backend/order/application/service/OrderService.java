@@ -10,6 +10,8 @@ import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
+import com.mealhub.backend.product.domain.entity.Product;
+import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.user.domain.enums.UserRole;
@@ -29,6 +31,7 @@ public class OrderService {
 
     private final OrderInfoRepository orderInfoRepository;
     private final RestaurantRepository restaurantRepository;
+    private final ProductRepository productRepository;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
@@ -58,12 +61,14 @@ public class OrderService {
                 request.getORequirements()
         );
 
-        // 주문 상품 추가 (실제로는 Product 조회 필요)
+        // 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
         for (OrderCreateRequest.OrderItemRequest itemRequest : request.getItems()) {
-            // TODO: Product 엔티티에서 실제 가격과 상품명 조회
+            Product product = productRepository.findById(itemRequest.getPId())
+                    .orElseThrow(() -> new OrderNotFoundException("Product.NotFound"));
+
             OrderItem orderItem = OrderItem.createOrderItem(
-                    "상품명",  // 실제로는 Product에서 조회
-                    10000L,  // 실제로는 Product에서 조회
+                    product.getPName(),
+                    product.getPPrice(),
                     itemRequest.getQuantity()
             );
             orderInfo.addOrderItem(orderItem);
