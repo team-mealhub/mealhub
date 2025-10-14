@@ -70,6 +70,14 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/api-docs.html")
                         .permitAll()
                         .requestMatchers("/v1/auth/**").permitAll()
+                        // Restaurant
+                        .requestMatchers(HttpMethod.POST, "/v1/restaurant/**")
+                        .hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/restaurant/**")
+                        .hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/restaurant/**")
+                        .hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/v1/restaurant/**").permitAll()
                         // Restaurant Category
                         .requestMatchers(HttpMethod.POST, "/v1/restaurant/category")
                         .hasRole("MANAGER")

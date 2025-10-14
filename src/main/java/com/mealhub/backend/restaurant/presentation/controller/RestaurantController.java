@@ -42,7 +42,7 @@ public class RestaurantController {
         UserRole role = userDetailsImpl.getRole();
         Long userId = userDetailsImpl.getId();
 
-        return restaurantService.createRestaurant(restaurantRequest, userId, role);
+        return restaurantService.createRestaurant(restaurantRequest, userId);
     }
 
     @GetMapping("/{restaurantId}")
@@ -104,7 +104,6 @@ public class RestaurantController {
         UserRole role = userDetailsImpl.getRole();
         Long userId = userDetailsImpl.getId();
 
-        return restaurantService.changeRestaurantStatus(restaurantId, restaurantRequest, userId,
-                role);
+        return restaurantService.changeRestaurantStatus(restaurantId, restaurantRequest, userId);
     }
 }
