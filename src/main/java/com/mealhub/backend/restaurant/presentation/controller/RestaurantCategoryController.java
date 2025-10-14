@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,5 +49,19 @@ public class RestaurantCategoryController {
     public List<RestaurantCategoryResponse> getRestaurantCategories() {
 
         return restaurantCategoryService.getRestaurantCategories();
+    }
+
+    @PatchMapping("/categoryId")
+    @Operation(summary = "가게 분류 수정")
+    @ResponseStatus(HttpStatus.OK)
+    public RestaurantCategoryResponse updateRestaurantCategory(
+            @Valid @RequestBody RestaurantCategoryRequest restaurantCategoryRequest,
+            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+    ) {
+        UserRole role = userDetailsImpl.getRole();
+        Long userId = userDetailsImpl.getId();
+
+        return restaurantCategoryService.updateRestaurantCategory(restaurantCategoryRequest, role,
+                userId);
     }
 }

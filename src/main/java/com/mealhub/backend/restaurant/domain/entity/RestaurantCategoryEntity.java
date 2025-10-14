@@ -38,4 +38,9 @@ public class RestaurantCategoryEntity extends BaseAuditEntity {
                 .category(category.getCategory())
                 .build();
     }
+
+    // 가게 분류 수정 메서드
+    public void updateCategory(RestaurantCategoryRequest restaurantCategoryRequest) {
+        this.category = restaurantCategoryRequest.getUpdatedCategory();
+    }
 }

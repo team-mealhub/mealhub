@@ -9,6 +9,7 @@ import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantCatego
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,20 @@ public class RestaurantCategoryService {
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 유저입니다."));
     }
 
+    // 등록된 가게 분류 확인 메서드
+    private RestaurantCategoryEntity findCategory(String category) {
+        return restaurantCategoryRepository.findByCategory(category)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 가게 분류입니다."));
+    }
+
+    // 가게 분류 중복 확인 메서드
+    private void verifyDuplicateCategory(String category) {
+        restaurantCategoryRepository.findByCategory(category)
+                .ifPresent(c -> {
+                    throw new ForbiddenException("이미 존재하는 가게 분류입니다.");
+                });
+    }
+
     // 가게 분류 추가
     @Transactional
     public RestaurantCategoryResponse createRestaurantCategory(
@@ -53,7 +68,7 @@ public class RestaurantCategoryService {
         verifyOwnerRole(role);
 
         // 인증된 사용자 확인
-        User findUser = findUser(userId);
+        findUser(userId);
 
         // 가게 분류 중복 확인
         restaurantCategoryRepository.findByCategory(restaurantCategoryRequest.getCategory())
@@ -69,7 +84,7 @@ public class RestaurantCategoryService {
         RestaurantCategoryEntity save = restaurantCategoryRepository.save(
                 restaurantCategory);
 
-        return RestaurantCategoryResponse.from(save.getCategory());
+        return RestaurantCategoryResponse.from(save);
     }
 
     // 가게 분류 전체 조회
@@ -79,5 +94,30 @@ public class RestaurantCategoryService {
         List<RestaurantCategoryEntity> categories = restaurantCategoryRepository.findAll();
 
         return RestaurantCategoryResponse.fromList(categories);
+    }
+
+    // 가게 분류 수정
+    @Transactional
+    public RestaurantCategoryResponse updateRestaurantCategory(
+            @Valid RestaurantCategoryRequest restaurantCategoryRequest, UserRole role, Long userId
+    ) {
+        // 권한 확인 : MANAGER만 수정 가능
+        verifyCustomerRole(role);
+        verifyOwnerRole(role);
+
+        // 인증된 사용자 확인
+        findUser(userId);
+
+        // 등록된 가게 분류 확인
+        RestaurantCategoryEntity category = findCategory(
+                restaurantCategoryRequest.getCategory());
+
+        // 가게 분류 중복 확인
+        verifyDuplicateCategory(restaurantCategoryRequest.getUpdatedCategory());
+
+        // 가게 분류 수정
+        category.updateCategory(restaurantCategoryRequest);
+
+        return RestaurantCategoryResponse.from(category);
     }
 }

@@ -14,9 +14,9 @@ public class RestaurantCategoryResponse {
 
     private final String category;
 
-    public static RestaurantCategoryResponse from(String category) {
+    public static RestaurantCategoryResponse from(RestaurantCategoryEntity category) {
         return RestaurantCategoryResponse.builder()
-                .category(category)
+                .category(category.getCategory())
                 .build();
     }
 
@@ -24,7 +24,7 @@ public class RestaurantCategoryResponse {
     public static List<RestaurantCategoryResponse> fromList(
             List<RestaurantCategoryEntity> categories) {
         return categories.stream()
-                .map(category -> RestaurantCategoryResponse.from(category.getCategory()))
+                .map(RestaurantCategoryResponse::from)
                 .toList();
     }
 }
