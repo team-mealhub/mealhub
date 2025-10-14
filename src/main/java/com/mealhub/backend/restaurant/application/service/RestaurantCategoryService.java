@@ -9,6 +9,7 @@ import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantCatego
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,5 +70,14 @@ public class RestaurantCategoryService {
                 restaurantCategory);
 
         return RestaurantCategoryResponse.from(save.getCategory());
+    }
+
+    // 가게 분류 전체 조회
+    @Transactional(readOnly = true)
+    public List<RestaurantCategoryResponse> getRestaurantCategories() {
+
+        List<RestaurantCategoryEntity> categories = restaurantCategoryRepository.findAll();
+
+        return RestaurantCategoryResponse.fromList(categories);
     }
 }
