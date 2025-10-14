@@ -98,5 +98,20 @@ public class RestaurantController {
         return restaurantService.searchRestaurants(keyword, page - 1, size, sortBy, isAsc);
     }
 
-    // TODO : 가게 상태 변경
+    // 가게 상태 변경
+    @PostMapping("/status/{restaurantId}")
+    @Operation(summary = "가게 상태 변경 (영업중 / 준비중)")
+    @ResponseStatus(HttpStatus.OK)
+    @SecurityRequirement(name = "Bearer Authentication")
+    public RestaurantResponse changeRestaurantStatus(
+            @PathVariable UUID restaurantId,
+            @Valid @RequestBody RestaurantRequest restaurantRequest,
+            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+    ) {
+        UserRole role = userDetailsImpl.getRole();
+        Long userId = userDetailsImpl.getId();
+
+        return restaurantService.changeRestaurantStatus(restaurantId, restaurantRequest, userId,
+                role);
+    }
 }

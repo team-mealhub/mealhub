@@ -42,7 +42,7 @@ public class RestaurantResponse {
                 .name(restaurantEntity.getName())
                 .description(restaurantEntity.getDescription())
                 .category(restaurantEntity.getCategory().getCategory())
-                .status(restaurantEntity.getStatus())
+                .status(restaurantEntity.getIsOpen())
                 .build();
     }
 }

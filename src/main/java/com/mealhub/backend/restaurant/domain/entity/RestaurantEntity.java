@@ -49,17 +49,17 @@ public class RestaurantEntity extends BaseAuditEntity {
     private RestaurantCategoryEntity category;
 
     @Column(name = "r_status")
-    private Boolean status;
+    private Boolean isOpen;
 
     @Builder(access = AccessLevel.PRIVATE)
     private RestaurantEntity(User user, Address address, String name, String description,
-            RestaurantCategoryEntity category, Boolean status) {
+            RestaurantCategoryEntity category, Boolean isOpen) {
         this.user = user;
         this.address = address;
         this.name = name;
         this.description = description;
         this.category = category;
-        this.status = status;
+        this.isOpen = isOpen;
     }
 
     public static RestaurantEntity of(RestaurantRequest restaurantRequest, User user,
@@ -70,7 +70,7 @@ public class RestaurantEntity extends BaseAuditEntity {
                 .name(restaurantRequest.getName())
                 .description(restaurantRequest.getDescription())
                 .category(category)
-                .status(false)
+                .isOpen(false)
                 .build();
     }
 
@@ -81,5 +81,10 @@ public class RestaurantEntity extends BaseAuditEntity {
         this.name = restaurantRequest.getName();
         this.description = restaurantRequest.getDescription();
         this.category = category;
+    }
+
+    // 가게 영업 상태 변경 메서드
+    public void changeStatus(Boolean isOpen) {
+        this.isOpen = isOpen;
     }
 }

@@ -24,4 +24,7 @@ public class RestaurantRequest {
 
     @NotNull
     private UUID categoryId;
+
+    @NotNull
+    private Boolean isOpen;
 }

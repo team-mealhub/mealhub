@@ -224,5 +224,29 @@ public class RestaurantService {
         return pageResult.map(RestaurantResponse::from);
     }
 
-    // TODO : 가게 상태 변경
+    // 가게 상태 변경
+    @Transactional
+    public RestaurantResponse changeRestaurantStatus(UUID restaurantId,
+            RestaurantRequest restaurantRequest, Long userId,
+            UserRole role) {
+
+        // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
+        if (role.equals(UserRole.ROLE_CUSTOMER)) {
+            throw new ForbiddenException();
+        }
+
+        // 인증된 사용자 확인
+        User findUser = findUser(userId);
+
+        // 가게 존재 확인
+        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+
+        // 가게 소유자 확인
+        verifyOwner(restaurantEntity, userId);
+
+        // 가게 상태 변경
+        restaurantEntity.changeStatus(restaurantRequest.getIsOpen());
+
+        return RestaurantResponse.from(restaurantEntity);
+    }
 }
