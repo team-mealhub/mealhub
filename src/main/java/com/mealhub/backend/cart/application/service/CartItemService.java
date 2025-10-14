@@ -57,7 +57,7 @@ public class CartItemService {
         CartItem cartItem = getCartItemById(cartItemId);
         cartItem.validateOwnership(userId);
 
-        cartItem.updateQuantity(request.getOperation(), request.getQuantity());
+        cartItem.updateQuantity(request.getQuantity());
         return new CartItemResponse(cartItem);
     }
 
