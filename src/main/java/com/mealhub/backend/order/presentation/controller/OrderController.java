@@ -8,6 +8,7 @@ import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateReque
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
 import com.mealhub.backend.user.domain.enums.UserRole;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +36,7 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     public ResponseEntity<OrderResponse> createOrder(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody OrderCreateRequest request
+            @RequestBody @Valid OrderCreateRequest request
     ) {
         Long userId = userDetails.getId();
         OrderResponse response = orderService.createOrder(userId, request);
@@ -82,7 +83,7 @@ public class OrderController {
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable("o_id") UUID orderId,
-            @RequestBody OrderStatusUpdateRequest request,
+            @RequestBody @Valid OrderStatusUpdateRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         Long currentUserId = userDetails.getId();
