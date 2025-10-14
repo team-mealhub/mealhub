@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -37,10 +38,11 @@ public class CartItemController {
             summary = "장바구니 아이템 추가",
             description = "로그인한 유저의 장바구니에 아이템을 추가합니다."
     )
-    @ApiResponse(responseCode = "200", description = "장바구니 아이템 추가 성공")
+    @ApiResponse(responseCode = "201", description = "장바구니 아이템 추가 성공")
     @ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PostMapping
+    @ResponseStatus(code = HttpStatus.CREATED)
     public CartItemResponse addCartItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody CartItemCreateRequest request
