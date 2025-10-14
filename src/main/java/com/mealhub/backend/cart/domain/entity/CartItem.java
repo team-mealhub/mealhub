@@ -36,6 +36,7 @@ public class CartItem extends BaseAuditEntity {
     private int quantity;
 
     @Column(name = "ct_status")
+    @Enumerated(EnumType.STRING)
     private CartItemStatus status;
 
     @Column(name = "ct_is_buying")
