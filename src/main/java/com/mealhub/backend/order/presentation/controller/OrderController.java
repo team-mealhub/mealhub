@@ -132,7 +132,7 @@ public class OrderController {
     @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PatchMapping("/{o_id}/status")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'OWNER')")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable("o_id") UUID orderId,
             @RequestBody @Valid OrderStatusUpdateRequest request,
@@ -159,7 +159,7 @@ public class OrderController {
     @ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PostMapping("/{o_id}/cancel")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MANAGER')")
     public ResponseEntity<OrderResponse> cancelOrder(
             @PathVariable("o_id") UUID orderId,
             @RequestParam(required = false, defaultValue = "변심") String reason,
