@@ -2,6 +2,8 @@ package com.mealhub.backend.order.domain.entity;
 
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
+import com.mealhub.backend.order.domain.exception.OrderCancelException;
+import com.mealhub.backend.order.domain.exception.OrderStatusTransitionException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -73,6 +75,8 @@ public class OrderInfo extends BaseAuditEntity {
     }
 
     public void updateStatus(OrderStatus newStatus, String reason) {
+        validateStatusTransition(this.status, newStatus);
+
         OrderStatus oldStatus = this.status;
         this.status = newStatus;
 
@@ -81,9 +85,45 @@ public class OrderInfo extends BaseAuditEntity {
         this.statusLogs.add(log);
     }
 
+    /**
+     * 주문 상태 전이 규칙 검증
+     * - PENDING → IN_PROGRESS, CANCELLED
+     * - IN_PROGRESS → OUT_FOR_DELIVERY, CANCELLED
+     * - OUT_FOR_DELIVERY → DELIVERED, CANCELLED
+     * - DELIVERED, CANCELLED → (변경 불가)
+     */
+    private void validateStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        if (currentStatus == newStatus) {
+            return; // 동일한 상태로의 전이는 허용
+        }
+
+        switch (currentStatus) {
+            case PENDING:
+                if (newStatus != OrderStatus.IN_PROGRESS && newStatus != OrderStatus.CANCELLED) {
+                    throw new OrderStatusTransitionException("Order.Status.Transition.FromPending");
+                }
+                break;
+            case IN_PROGRESS:
+                if (newStatus != OrderStatus.OUT_FOR_DELIVERY && newStatus != OrderStatus.CANCELLED) {
+                    throw new OrderStatusTransitionException("Order.Status.Transition.FromInProgress");
+                }
+                break;
+            case OUT_FOR_DELIVERY:
+                if (newStatus != OrderStatus.DELIVERED && newStatus != OrderStatus.CANCELLED) {
+                    throw new OrderStatusTransitionException("Order.Status.Transition.FromOutForDelivery");
+                }
+                break;
+            case DELIVERED:
+            case CANCELLED:
+                throw new OrderStatusTransitionException("Order.Status.Transition.FinalState");
+            default:
+                throw new OrderStatusTransitionException("Order.Status.Transition.Unknown");
+        }
+    }
+
     public void cancel(String reason) {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("PENDING 상태의 주문만 취소할 수 있습니다.");
+            throw new OrderCancelException("Order.Cancel.OnlyPending");
         }
         updateStatus(OrderStatus.CANCELLED, reason);
     }

@@ -24,6 +24,9 @@ public class OrderItem extends BaseAuditEntity {
     @JoinColumn(name = "o_info_id", nullable = false)
     private OrderInfo orderInfo;
 
+    @Column(name = "p_id", columnDefinition = "UUID")
+    private UUID productId;
+
     @Column(name = "o_item_product", length = 255, nullable = false)
     private String product;
 
@@ -34,13 +37,14 @@ public class OrderItem extends BaseAuditEntity {
     private Long quantity;
 
     // 정적 팩토리 메서드
-    public static OrderItem createOrderItem(String product, Long price, Long quantity) {
+    public static OrderItem createOrderItem(UUID productId, String product, Long price, Long quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
         }
 
         OrderItem orderItem = new OrderItem();
         orderItem.oItemId = UUID.randomUUID();
+        orderItem.productId = productId;
         orderItem.product = product;
         orderItem.price = price;
         orderItem.quantity = quantity;
