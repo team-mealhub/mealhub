@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
@@ -79,4 +80,7 @@ public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
      */
     @Query("SELECT o FROM OrderInfo o LEFT JOIN FETCH o.items WHERE o.oInfoId = :orderId")
     java.util.Optional<OrderInfo> findByIdWithItems(@Param("orderId") UUID orderId);
+
+    // 주문 ID로 삭제되지 않은 주문 조회
+    Optional<OrderInfo> findByOInfoIdAndDeletedAtIsNull(UUID oInfoId);
 }
