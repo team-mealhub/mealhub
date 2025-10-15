@@ -4,14 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import java.util.UUID;
 
 public class CartItemUpdateRequest {
 
@@ -25,17 +21,5 @@ public class CartItemUpdateRequest {
         @Max(1000)
         @Schema(description = "장바구니 수량", example = "2")
         private int quantity;
-    }
-
-    @Getter
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor
-    public static class Buying {
-
-        @JsonProperty("ct_ids")
-        private List<UUID> cartItemIds;
-
-        @JsonProperty("ct_buying")
-        private boolean buying;
     }
 }
