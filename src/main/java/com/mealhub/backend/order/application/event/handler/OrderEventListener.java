@@ -66,7 +66,7 @@ public class OrderEventListener {
                 event.getOrderId(),
                 event.getUserId(),
                 event.getAmount(),
-                PaymentStatus.PENDING
+                PaymentStatus.CANCELLED
         );
     }
 }
