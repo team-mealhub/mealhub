@@ -29,15 +29,15 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @Operation(summary = "리뷰 생성", description = "가게 ID(r_id)에 대한 리뷰 생성")
+    @Operation(summary = "리뷰 생성", description = "주문 ID(o_info_id)기반 가게 리뷰 생성")
     @PostMapping
     public ResponseEntity<ReviewResDto> createReview(
-            @RequestParam("r_id") UUID restaurantId,
+            @RequestParam("o_info_id") UUID orderId,
             @RequestBody @Valid ReviewCreateDto createDto,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         UserRole role = userDetailsImpl.getRole();
         Long userId = userDetailsImpl.getId();
-        ReviewResDto res = reviewService.createReview(restaurantId, createDto, userId, role);
+        ReviewResDto res = reviewService.createReview(orderId, createDto, userId, role);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(res);
