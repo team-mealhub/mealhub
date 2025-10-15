@@ -23,9 +23,8 @@ public class OrderStatusLog {
     @Column(name = "o_status_id", columnDefinition = "UUID")
     private UUID oStatusId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "o_info_id", nullable = false)
-    private OrderInfo orderInfo;
+    @Column(name = "o_info_id", nullable = false)
+    private UUID orderInfoId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "o_prev_status", length = 100)
@@ -47,10 +46,10 @@ public class OrderStatusLog {
     private Long createdBy;
 
     // 정적 팩토리 메서드
-    public static OrderStatusLog createLog(OrderInfo orderInfo, OrderStatus prevStatus, OrderStatus currStatus, String reason) {
+    public static OrderStatusLog createLog(UUID orderInfoId, OrderStatus prevStatus, OrderStatus currStatus, String reason) {
         OrderStatusLog log = new OrderStatusLog();
         log.oStatusId = UUID.randomUUID();
-        log.orderInfo = orderInfo;
+        log.orderInfoId = orderInfoId;
         log.prevStatus = prevStatus;
         log.currStatus = currStatus;
         log.reason = reason;
