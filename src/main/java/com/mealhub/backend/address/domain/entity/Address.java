@@ -48,12 +48,6 @@ public class Address extends BaseAuditEntity {
     @Column(name = "a_deleted", nullable = false)
     private boolean deleted = false;
 
-    @Column(name = "a_deleted_by")
-    private Long deletedBy;
-
-    @Column(name = "a_deleted_at")
-    private LocalDateTime deletedAt;
-
     @Builder
     private Address(User user, String name, boolean defaultAddress, String address,
                     String oldAddress, Double longitude, Double latitude, String memo) {
