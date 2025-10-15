@@ -90,21 +90,6 @@ public class CartItemController {
     }
 
     @Operation(
-            summary = "장바구니 아이템 구매 상태 변경",
-            description = "장바구니 아이템의 구매 상태를 변경합니다."
-    )
-    @ApiResponse(responseCode = "200", description = "장바구니 아이템 구매 상태 변경 성공")
-    @ApiResponse(responseCode = "403", description = "장바구니 아이템에 대한 권한 없음",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    @PatchMapping("/buying")
-    public List<CartItemResponse> updateCartItemBuying(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @Valid @RequestBody CartItemUpdateRequest.Buying request
-    ) {
-        return cartItemService.updateCartItemsBuying(userDetails.getId(), request);
-    }
-
-    @Operation(
             summary = "장바구니 아이템 삭제",
             description = "장바구니 아이템을 삭제합니다."
     )
