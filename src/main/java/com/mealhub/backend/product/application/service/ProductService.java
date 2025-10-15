@@ -1,6 +1,7 @@
 package com.mealhub.backend.product.application.service;
 
 import com.mealhub.backend.global.domain.exception.BadRequestException;
+import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
@@ -56,7 +57,7 @@ public class ProductService {
     @Transactional
     public ProductResponse getProduct(UUID pId) {
         Product product = productRepository.findById(pId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new NotFoundException("해당 상품이 없습니다."));
         return ProductResponse.from(product);
     }
 
@@ -75,7 +76,7 @@ public class ProductService {
     public ProductResponse updateProduct(UUID pId, ProductRequest productRequest,Long userId) {
         // 1. 상품 조회 (없으면 예외 발생)
         Product product = productRepository.findById(pId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new NotFoundException("해당 상품이 없습니다."));
 
         validateRestaurantOwner(product.getRestaurant(), userId);
 
@@ -99,11 +100,11 @@ public class ProductService {
     public void deleteProduct(UUID pId,Long userId) {
 
         Product product = productRepository.findById(pId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new NotFoundException("해당 상품이 없습니다"));
 
         validateRestaurantOwner(product.getRestaurant(), userId);
         // 삭제 전 해당 상품이 존재하는지 확인하거나,
-             productRepository.deleteById(pId);
+        productRepository.deleteById(pId);
     }
 
 
@@ -130,12 +131,12 @@ public class ProductService {
      * 특정 상품의 상태를 숨김(pStatus=false)으로 변경합니다.
      */
     @Transactional
-    public ProductResponse hideProduct(UUID pId, Long userId) {
+    public ProductResponse hideProduct(UUID pId, Long userId,boolean status) {
         Product product = productRepository.findById(pId)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID"));
+                .orElseThrow(() -> new NotFoundException("해당 상품이 없습니다."));
         validateRestaurantOwner(product.getRestaurant(), userId);
-               product.setHidden(true);
-               return ProductResponse.from(product);
+        product.setHidden(status);
+        return ProductResponse.from(product);
     }
 
     private void validateRestaurantOwner(RestaurantEntity restaurantEntity,Long userId) {
@@ -143,13 +144,6 @@ public class ProductService {
             throw new BadRequestException("해당 상품에 대한 수정/삭제 권한이 없습니다.");
         }
     }
-
-
-
-
-
-
-
 
 
 }

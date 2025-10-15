@@ -28,7 +28,7 @@ public class ProductController {
     // 음식 생성
     private final ProductService productservice;
 
-     @PostMapping
+    @PostMapping
 
     public ResponseEntity<ProductResponse> create(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -56,7 +56,7 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-         Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size);
         Page<ProductResponse> productPage = productservice.searchProducts(restaurantId, keyword, pageable);
         return ResponseEntity.ok(productPage);
     }
@@ -83,9 +83,10 @@ public class ProductController {
 
     @PatchMapping("/{pId}/hide")
     public ResponseEntity<ProductResponse> hideProduct(
-            @PathVariable UUID pId,
+            @RequestParam UUID pId,
+            @RequestParam boolean status,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        ProductResponse productResponse = productservice.hideProduct(pId, userDetails.getId());
+        ProductResponse productResponse = productservice.hideProduct(pId, userDetails.getId(),status);
         return ResponseEntity.ok(productResponse);
     }
 
