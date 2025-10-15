@@ -35,7 +35,7 @@ public class ProductController {
 
     @Operation(
             summary = "상품 신규 등록",
-            description = "새로운 상품 정보를 시스템에 등록합니다. 레스토랑 소유자만 가능합니다."
+            description = "새로운 상품 정보를 시스템에 등록합니다. 가게 소유자만 가능합니다."
     )
     @PostMapping
     public ResponseEntity<ProductResponse> create(
@@ -119,7 +119,7 @@ public class ProductController {
 
     @Operation(
             summary = "상품 영구 삭제",
-            description = "특정 상품을 데이터베이스에서 영구적으로 삭제합니다."
+            description = "특정 상품을 삭제합니다."
     )
     @DeleteMapping("/{pId}")
     public ResponseEntity<Void> delete(
