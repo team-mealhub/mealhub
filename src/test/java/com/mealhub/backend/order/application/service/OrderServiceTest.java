@@ -88,8 +88,9 @@ class OrderServiceTest {
 
         // Product Mock 설정
         Product product = mock(Product.class);
-        when(product.getPName()).thenReturn("치킨");
-        when(product.getPPrice()).thenReturn(20000L);
+        when(product.getId()).thenReturn(productId);
+        when(product.getName()).thenReturn("치킨");
+        when(product.getPrice()).thenReturn(20000L);
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, request.getORequirements());
