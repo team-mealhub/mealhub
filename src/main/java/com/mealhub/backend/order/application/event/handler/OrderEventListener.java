@@ -7,6 +7,7 @@ import com.mealhub.backend.payment.application.service.PaymentService;
 import com.mealhub.backend.payment.domain.enums.PaymentStatus;
 import com.mealhub.backend.payment.presentation.dto.request.PaymentLogRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -18,7 +19,8 @@ public class OrderEventListener {
     private final CartItemService cartItemService;
     private final PaymentService paymentService;
 
-    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCreatedEvent(OrderCreatedEvent event) {
         CartItemUpdateRequest.Buying cartItemUpdateRequest = createCartItemUpdateRequest(event);
         cartItemService.updateCartItemsBuying(event.getUserId(), cartItemUpdateRequest);
