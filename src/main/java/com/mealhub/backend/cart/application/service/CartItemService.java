@@ -81,10 +81,15 @@ public class CartItemService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<CartItemResponse> updateCartItemsBuying(Long userId, CartItemUpdateRequest.Buying request) {
         List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
+        boolean buying = request.isBuying();
 
         cartItems.forEach(cartItem -> {
             cartItem.validateOwnership(userId);
-            cartItem.updateBuying(request.isBuying());
+            if (!buying && cartItem.getStatus() == CartItemStatus.DIRECT) {
+                deleteCartItem(userId, cartItem.getId());
+            } else {
+                cartItem.updateBuying(buying);
+            }
         });
 
         return cartItems.stream().map(CartItemResponse::new).toList();
