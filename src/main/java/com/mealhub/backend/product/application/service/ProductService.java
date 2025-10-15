@@ -27,7 +27,6 @@ public class ProductService {
           1. 상품 생성 (Create)
        ========================== */
 
-
     @Transactional
     public ProductResponse createProduct(ProductRequest productRequest, Long userId) {
 
@@ -51,7 +50,6 @@ public class ProductService {
         return ProductResponse.from(savedProduct);
     }
 
-
     @Transactional
     public ProductResponse getProduct(UUID pId) {
         Product product = productRepository.findById(pId)
@@ -59,11 +57,9 @@ public class ProductService {
         return ProductResponse.from(product);
     }
 
-
     @Transactional
     public List<ProductResponse> getVisibleProductsByRestaurant(UUID rId) {
-
-        List<Product> products = productRepository.findAllByRIdAndStatus(rId, true);
+        List<Product> products = productRepository.findAllByRestaurantRestaurantIdAndStatus(rId, true);
 
         return products.stream()
                 .map(ProductResponse::from)
@@ -87,9 +83,7 @@ public class ProductService {
         return ProductResponse.from(product);
     }
 
-
     //상품 삭제
-
     @Transactional
     public void deleteProduct(UUID pId,Long userId) {
 
@@ -101,8 +95,6 @@ public class ProductService {
              productRepository.deleteById(pId);
     }
 
-
-
     public Page<ProductResponse> searchProducts(UUID restaurantId, String keyword, Pageable pageable) {
         Page<Product> productPage;
 
@@ -110,10 +102,10 @@ public class ProductService {
 
         if (restaurantId != null && searchKeyword != null) {
 
-            productPage = productRepository.findByRestaurantIdAndNameContainingIgnoreCase(restaurantId, searchKeyword, pageable);
+            productPage = productRepository.findByRestaurantRestaurantIdAndNameContainingIgnoreCase(restaurantId, searchKeyword, pageable);
         } else if (restaurantId != null) {
 
-            productPage = productRepository.findByRestaurantId(restaurantId, pageable);
+            productPage = productRepository.findByRestaurantRestaurantId(restaurantId, pageable);
         } else if (searchKeyword != null) {
             productPage = productRepository.findByNameContainingIgnoreCase(searchKeyword, pageable);
         } else {
@@ -138,13 +130,4 @@ public class ProductService {
             throw new BadRequestException("해당 상품에 대한 수정/삭제 권한이 없습니다.");
         }
     }
-
-
-
-
-
-
-
-
-
 }

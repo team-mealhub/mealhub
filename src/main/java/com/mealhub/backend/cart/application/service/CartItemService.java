@@ -49,7 +49,7 @@ public class CartItemService {
         Page<CartItem> cartItems = cartItemRepository.findByUserIdAndStatusAndBuyingIsFalseAndDeletedAtIsNull(userId, CartItemStatus.CART, pageable);
 
         long totalPrice = cartItems.stream()
-                .mapToLong(cartItem -> cartItem.getProduct().getPPrice() * cartItem.getQuantity())
+                .mapToLong(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
                 .sum();
 
         return new CartResponse(cartItems.map(CartItemResponse::new), totalPrice);

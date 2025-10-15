@@ -25,8 +25,8 @@ public class CartItemResponse {
 
     public CartItemResponse(CartItem cartItem) {
         this.cartItemId = cartItem.getId();
-        this.productId = cartItem.getProduct().getPId();
+        this.productId = cartItem.getProduct().getId();
         this.quantity = cartItem.getQuantity();
-        this.price = cartItem.getProduct().getPPrice();
+        this.price = cartItem.getProduct().getPrice();
     }
 }
