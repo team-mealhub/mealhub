@@ -64,4 +64,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
      * @return list of restaurants owned by the user
      */
     List<RestaurantEntity> findByUser_Id(Long userId);
+
+    // 유저가 해당 레스토랑의 오너인지만 확인
+    boolean existsByRestaurantIdAndUser_Id(UUID restaurantId, Long userId);
 }
