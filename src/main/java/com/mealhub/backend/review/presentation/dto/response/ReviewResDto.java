@@ -40,6 +40,9 @@ public class ReviewResDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long updatedBy;
 
+    @JsonProperty("owner_only")
+    private boolean ownerOnly;
+
     public static ReviewResDto from(ReviewEntity reviewEntity) {
         return new ReviewResDto(
                 reviewEntity.getId(),
@@ -49,7 +52,8 @@ public class ReviewResDto {
                 reviewEntity.getCreatedAt(),
                 reviewEntity.getCreatedBy(),
                 reviewEntity.getUpdatedAt(),
-                reviewEntity.getUpdatedBy()
+                reviewEntity.getUpdatedBy(),
+                reviewEntity.isOwnerOnly()
         );
     }
 }
