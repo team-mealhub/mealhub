@@ -46,7 +46,7 @@ public class OrderService {
 
     // 권한 검증: OWNER가 자신의 가게 주문인지 확인
     private void validateOwnerRestaurant(OrderInfo orderInfo, Long currentUserId) {
-        RestaurantEntity restaurant = restaurantRepository.findById(orderInfo.getRestaurantId())
+        RestaurantEntity restaurant = restaurantRepository.findByIdWithUser(orderInfo.getRestaurantId())
                 .orElseThrow(() -> new OrderNotFoundException("Restaurant.NotFound"));
 
         if (!restaurant.getUser().getId().equals(currentUserId)) {
@@ -97,7 +97,7 @@ public class OrderService {
 
     // 주문 단건 조회
     public OrderDetailResponse getOrder(UUID orderId, Long currentUserId, UserRole userRole) {
-        OrderInfo orderInfo = orderInfoRepository.findById(orderId)
+        OrderInfo orderInfo = orderInfoRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Order.NotFound"));
 
         // MANAGER는 모든 주문 조회 가능
@@ -147,7 +147,7 @@ public class OrderService {
 
             // restaurantId가 지정된 경우, 해당 레스토랑의 소유자인지 확인
             if (restaurantId != null) {
-                RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
+                RestaurantEntity restaurant = restaurantRepository.findByIdWithUser(restaurantId)
                         .orElseThrow(() -> new OrderNotFoundException("Restaurant.NotFound"));
 
                 if (!restaurant.getUser().getId().equals(currentUserId)) {

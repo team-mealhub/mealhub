@@ -50,4 +50,13 @@ public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
     // 상태 리스트로 주문 조회
     @Query("SELECT o FROM OrderInfo o WHERE o.status IN :statuses AND o.deletedAt IS NULL")
     Page<OrderInfo> findByStatusIn(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);
+
+    /**
+     * Find OrderInfo by ID with items (FETCH JOIN to prevent N+1)
+     *
+     * @param orderId the order ID
+     * @return Optional of OrderInfo with items eagerly loaded
+     */
+    @Query("SELECT o FROM OrderInfo o LEFT JOIN FETCH o.items WHERE o.oInfoId = :orderId")
+    java.util.Optional<OrderInfo> findByIdWithItems(@Param("orderId") UUID orderId);
 }
