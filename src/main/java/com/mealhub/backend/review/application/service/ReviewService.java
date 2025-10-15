@@ -3,6 +3,9 @@ package com.mealhub.backend.review.application.service;
 import com.mealhub.backend.global.domain.exception.ForbiddenException;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.global.domain.exception.UnAuthorizedException;
+import com.mealhub.backend.order.domain.entity.OrderInfo;
+import com.mealhub.backend.order.domain.enums.OrderStatus;
+import com.mealhub.backend.order.infrastructure.repository.OrderInfoRepository;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
@@ -31,6 +34,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final RestaurantRepository restaurantRepository;
+    private final OrderInfoRepository orderInfoRepository;
 
     // 현재 user가 가게의 owner인지 확인
     private boolean isRestaurantOwner(Long currentUserId, UUID restaurantId) {
@@ -49,7 +53,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResDto createReview(UUID restaurantId, ReviewCreateDto createDto, Long userId, UserRole role) {
+    public ReviewResDto createReview(UUID orderId, ReviewCreateDto createDto, Long userId, UserRole role) {
         if (userId == null || !userRepository.existsById(userId)) {
             throw new UnAuthorizedException("UNAUTHORIZED");
         }
@@ -57,7 +61,21 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND"));
 
-        RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
+        OrderInfo order = orderInfoRepository.findByOInfoIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new NotFoundException("ORDER_NOT_FOUND"));
+
+        // 주문자 = 현재 로그인한 사용자 확인
+        if (!order.getUserId().equals(user.getId())) {
+            throw new ForbiddenException("NOT_ORDER_OWNER");
+        }
+
+        // 배달이 완료된 주문만 허용
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new ForbiddenException("REVIEW_ALLOWED_ONLY_AFTER_DELIVERED");
+        }
+
+        // 주문에 저장된 가게로 매핑
+        var restaurant = restaurantRepository.findById(order.getRestaurantId())
                 .orElseThrow(() -> new NotFoundException("RESTAURANT_NOT_FOUND"));
 
         ReviewEntity savedReviewEntity = reviewRepository.save(
