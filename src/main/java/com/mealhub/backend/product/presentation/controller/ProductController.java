@@ -51,7 +51,7 @@ public class ProductController {
     // 음식 검색
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> search(
-            @RequestParam(required = false) UUID restaurantId, // ⭐️ 이것이 올바른 타입입니다.
+            @RequestParam(required = false) UUID restaurantId,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

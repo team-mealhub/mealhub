@@ -3,11 +3,13 @@ package com.mealhub.backend.product.application.service;
 import com.mealhub.backend.global.domain.exception.BadRequestException;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.product.domain.entity.Product;
+import com.mealhub.backend.product.domain.entity.QProduct;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
 import com.mealhub.backend.product.presentation.dto.response.ProductResponse;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
+import com.querydsl.core.BooleanBuilder;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -108,28 +110,8 @@ public class ProductService {
     }
 
 
+     //특정 상품의 상태를 숨김(pStatus=false)으로 변경합니다.
 
-    public Page<ProductResponse> searchProducts(UUID restaurantId, String keyword, Pageable pageable) {
-        Page<Product> productPage;
-
-        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? keyword.trim() : null;
-
-        if (restaurantId != null && searchKeyword != null) {
-
-            productPage = productRepository.findByRestaurantRestaurantIdAndNameContainingIgnoreCase(restaurantId, searchKeyword, pageable);
-        } else if (restaurantId != null) {
-
-            productPage = productRepository.findByRestaurantRestaurantId(restaurantId, pageable);
-        } else if (searchKeyword != null) {
-            productPage = productRepository.findByNameContainingIgnoreCase(searchKeyword, pageable);
-        } else {
-            productPage = productRepository.findAll(pageable);
-        }         return productPage.map(ProductResponse::from);
-    }
-
-    /**
-     * 특정 상품의 상태를 숨김(pStatus=false)으로 변경합니다.
-     */
     @Transactional
     public ProductResponse hideProduct(UUID pId, Long userId,boolean status) {
         Product product = productRepository.findById(pId)
@@ -146,4 +128,37 @@ public class ProductService {
     }
 
 
+    //상품 검색 페이징 및 오름차순 내림차순 정렬 (querydsl)
+    @Transactional
+    public Page<ProductResponse> searchProducts(UUID restaurantId, String keyword, Pageable pageable) {
+
+        QProduct product = QProduct.product;
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 1. [검색 조건]: 레스토랑 ID 조건 추가
+        if (restaurantId != null) {
+            builder.and(product.restaurant.restaurantId.eq(restaurantId));
+        }
+
+        // 2. [검색 조건]: 키워드 검색 조건 추가
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchKeyword = keyword.trim();
+            builder.and(product.name.containsIgnoreCase(searchKeyword));
+        }
+
+        // 'builder'는 검색 조건을, 'pageable'은 페이지 번호, 크기, 정렬 기준(ASC/DESC)을 포함한다.
+        Page<Product> productPage = productRepository.findAll(builder, pageable);
+
+        return productPage.map(ProductResponse::from);
+    }
 }
+
+
+
+
+
+
+
+
+
+
