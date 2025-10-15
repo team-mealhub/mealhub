@@ -18,6 +18,9 @@ public class OrderCreateRequest {
     @NotNull
     private UUID aId;  // 배송 주소 ID
 
+    @NotNull(message = "결제 ID는 필수입니다")
+    private UUID paymentId;  // 결제 ID
+
     private String oRequirements;  // 추가 요청사항
 
     @NotEmpty

@@ -32,6 +32,9 @@ public class OrderInfo extends BaseAuditEntity {
     @Column(name = "a_id", columnDefinition = "UUID", nullable = false)
     private UUID addressId;
 
+    @Column(name = "py_log_id", columnDefinition = "UUID")
+    private UUID paymentId;
+
     @Column(name = "o_total", nullable = false)
     private Long total;
 
@@ -49,12 +52,13 @@ public class OrderInfo extends BaseAuditEntity {
     private List<OrderStatusLog> statusLogs = new ArrayList<>();
 
     // 정적 팩토리 메서드
-    public static OrderInfo createOrder(Long userId, UUID restaurantId, UUID addressId, String requirements) {
+    public static OrderInfo createOrder(Long userId, UUID restaurantId, UUID addressId, String requirements, UUID paymentId) {
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.oInfoId = UUID.randomUUID();
         orderInfo.userId = userId;
         orderInfo.restaurantId = restaurantId;
         orderInfo.addressId = addressId;
+        orderInfo.paymentId = paymentId;
         orderInfo.status = OrderStatus.PENDING;
         orderInfo.requirements = requirements;
         orderInfo.total = 0L;

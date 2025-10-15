@@ -80,7 +80,12 @@ public class OrderController {
             @RequestBody @Valid OrderCreateFromCartRequest request
     ) {
         Long userId = userDetails.getId();
-        OrderResponse response = orderService.createOrderFromCart(userId, request.getAId(), request.getORequirements());
+        OrderResponse response = orderService.createOrderFromCart(
+                userId,
+                request.getAId(),
+                request.getORequirements(),
+                request.getPaymentId()
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
