@@ -5,15 +5,12 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Getter
-public class OrderDeletedEvent {
+public class OrderDeletedEvent extends OrderEvent {
 
-    private final UUID orderId;
-    private final Long userId;
     private final long amount;
 
     public OrderDeletedEvent(UUID orderId, Long userId, long amount) {
-        this.orderId = orderId;
-        this.userId = userId;
+        super(orderId, userId);
         this.amount = amount;
     }
 }
