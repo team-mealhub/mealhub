@@ -5,6 +5,7 @@ import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -75,7 +76,14 @@ public class Address extends BaseAuditEntity {
         this.defaultAddress = defaultAddress;
     }
 
-    public void softDelete() {
+    public void softDelete(Long userId) {
+        if (this.deleted) {
+            return;
+        }
         this.deleted = true;
+        this.deletedBy = userId;
+        this.deletedAt = LocalDateTime.now();
     }
+
 }
+

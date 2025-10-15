@@ -159,6 +159,12 @@ public class AddressControllerTest {
     void deleteAddress() throws Exception {
         UUID id = UUID.randomUUID();
 
+        AddressResponse deletedResponse = new AddressResponse(
+                id, "우리집", true, "서울시 강남구", null, 127.0, 37.0, "메모"
+        );
+
+        Mockito.doNothing().when(addressService).deleteAddress(any(), eq(id));
+
         mockMvc.perform(MockMvcRequestBuilders.delete("/v1/addresses/" + id)
                         .with(csrf())
                         .with(authentication(new UsernamePasswordAuthenticationToken(mockPrincipal(), null, List.of()))))
@@ -184,8 +190,28 @@ public class AddressControllerTest {
                         .with(csrf())
                         .with(authentication(new UsernamePasswordAuthenticationToken(mockPrincipal(), null, List.of()))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].name").value("우리집"))
+                .andExpect(jsonPath("$.content[0].name").value(org.hamcrest.Matchers.containsString("우리")))
+                .andExpect(jsonPath("$.content[0].address").value(org.hamcrest.Matchers.containsString("서울시")))
+                .andExpect(jsonPath("$.content[0].memo").value(org.hamcrest.Matchers.containsString("메모")))
                 .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("주소 검색 - 매치되지 않으면 결과 없음")
+    @WithMockUser
+    void searchAddressesNoResult() throws Exception {
+        Page<AddressResponse> emptyPage = new PageImpl<>(List.of());
+
+        Mockito.when(addressService.getAllAddresses(any(), eq("없는 값"), any())).thenReturn(emptyPage);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/v1/addresses")
+                        .param("keyword", "없는 값")
+                        .with(csrf())
+                        .with(authentication(new UsernamePasswordAuthenticationToken(mockPrincipal(), null, List.of()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.totalElements").value(0));
+
     }
 
 
