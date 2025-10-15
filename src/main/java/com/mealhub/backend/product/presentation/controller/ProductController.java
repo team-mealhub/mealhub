@@ -6,7 +6,7 @@ import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
 import com.mealhub.backend.product.presentation.dto.response.ProductResponse;
 import com.mealhub.backend.user.domain.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag; // ⭐️ Tag Import 추가
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "상품 관리 API", description = "상품 등록, 조회, 검색, 수정, 삭제 및 숨김 처리 기능.") // ⭐️ 클래스 레벨 Tag 적용
+@Tag(name = "상품 관리 API", description = "상품 등록, 조회, 검색, 수정, 삭제 및 숨김 처리 기능.") //
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/product")
@@ -63,7 +63,7 @@ public class ProductController {
      //3. 상품 검색 (Search)
     @Operation(
             summary = "상품 목록 검색 및 페이징",
-            description = "키워드(상품명) 및/또는 레스토랑 ID로 상품 목록을 검색하고, 페이지 및 정렬한다."
+            description = "키워드 또는 가게 ID로 상품 목록을 조회합니다. "
     )
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> search(
@@ -99,12 +99,12 @@ public class ProductController {
         return ResponseEntity.ok(productResponse);
     }
 
-    /**
-     * 5. 상품 숨김 처리 (Hide)
-     */
+
+     //5. 상품 숨김 처리 (Hide)
+
     @Operation(
             summary = "상품 숨김/판매 중지 처리",
-            description = "특정 상품을 숨김 상태(pStatus=false)로 변경하여 음식을 보여주거나 숨김처리를 합니다."
+            description = "특정 상품을 숨김 상태로 변경하여 음식을 보여주거나 숨김처리를 합니다."
     )
     @PatchMapping("/{pId}/hide")
     public ResponseEntity<ProductResponse> hideProduct(
@@ -114,9 +114,9 @@ public class ProductController {
         return ResponseEntity.ok(productResponse);
     }
 
-    /**
-     * 6. 상품 삭제 (Delete)
-     */
+
+     // 6. 상품 삭제 (Delete)
+
     @Operation(
             summary = "상품 영구 삭제",
             description = "특정 상품을 데이터베이스에서 영구적으로 삭제합니다."
