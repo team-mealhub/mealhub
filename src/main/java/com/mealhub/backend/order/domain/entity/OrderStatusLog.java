@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -41,18 +40,18 @@ public class OrderStatusLog {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @CreatedBy
     @Column(name = "created_by", updatable = false)
     private Long createdBy;
 
     // 정적 팩토리 메서드
-    public static OrderStatusLog createLog(UUID orderInfoId, OrderStatus prevStatus, OrderStatus currStatus, String reason) {
+    public static OrderStatusLog createLog(UUID orderInfoId, Long userId, OrderStatus prevStatus, OrderStatus currStatus, String reason) {
         OrderStatusLog log = new OrderStatusLog();
         log.oStatusId = UUID.randomUUID();
         log.orderInfoId = orderInfoId;
         log.prevStatus = prevStatus;
         log.currStatus = currStatus;
         log.reason = reason;
+        log.createdBy = userId;
         return log;
     }
 }
