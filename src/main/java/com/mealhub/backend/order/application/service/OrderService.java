@@ -83,9 +83,9 @@ public class OrderService {
                     .orElseThrow(() -> new OrderNotFoundException("Product.NotFound"));
 
             OrderItem orderItem = OrderItem.createOrderItem(
-                    product.getPId(),
-                    product.getPName(),
-                    product.getPPrice(),
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
                     itemRequest.getQuantity()
             );
             orderInfo.addOrderItem(orderItem);
