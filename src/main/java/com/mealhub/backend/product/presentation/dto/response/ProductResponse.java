@@ -17,29 +17,29 @@ public class ProductResponse {
 
 
     @JsonProperty("p_id")
-    private UUID pId;
+    private UUID id;
 
     @JsonProperty("r_id")
     private UUID restaurantId;
 
     @JsonProperty("p_name")
-    private String pName;
+    private String name;
 
     @JsonProperty("p_description")
-    private String pDescription;
+    private String description;
 
     @JsonProperty("p_price")
-    private long pPrice;
+    private long price;
 
 
 
     public static ProductResponse from(Product product) {
         return ProductResponse.builder()
-                .pId(product.getPId())
+                .id(product.getId())
                 .restaurantId(product.getRestaurant().getRestaurantId())
-                .pName(product.getPName())
-                .pDescription(product.getPDescription())
-                .pPrice(product.getPPrice())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice())
                 .build();
     }
 }

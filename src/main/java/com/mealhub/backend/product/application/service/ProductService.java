@@ -64,7 +64,7 @@ public class ProductService {
     @Transactional
     public List<ProductResponse> getVisibleProductsByRestaurant(UUID rId) {
         // findAllByRIdAndStatus(UUID rId, boolean status)를 사용한다고 가정
-        List<Product> products = productRepository.findAllByRIdAndStatus(rId, true);
+        List<Product> products = productRepository.findAllByRestaurantRestaurantIdAndStatus(rId, true);
 
         return products.stream()
                 .map(ProductResponse::from)
@@ -115,10 +115,10 @@ public class ProductService {
 
         if (restaurantId != null && searchKeyword != null) {
 
-            productPage = productRepository.findByRestaurantIdAndNameContainingIgnoreCase(restaurantId, searchKeyword, pageable);
+            productPage = productRepository.findByRestaurantRestaurantIdAndNameContainingIgnoreCase(restaurantId, searchKeyword, pageable);
         } else if (restaurantId != null) {
 
-            productPage = productRepository.findByRestaurantId(restaurantId, pageable);
+            productPage = productRepository.findByRestaurantRestaurantId(restaurantId, pageable);
         } else if (searchKeyword != null) {
             productPage = productRepository.findByNameContainingIgnoreCase(searchKeyword, pageable);
         } else {
