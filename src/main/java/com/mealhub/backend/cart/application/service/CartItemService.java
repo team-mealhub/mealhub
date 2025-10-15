@@ -14,12 +14,15 @@ import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,21 +35,34 @@ public class CartItemService {
     @Transactional
     public CartItemResponse addCartItem(User user, CartItemCreateRequest request) {
         // TODO: Product 예외로 변경
-        Product product = productRepository.findById(request.getP_id())
+        Product product = productRepository.findById(request.getProductId())
                         .orElseThrow(NotFoundException::new);
 
-        CartItem cartItem = CartItem.createCartItem(request, user, product);
-        CartItem savedCartItem = cartItemRepository.save(cartItem);
+        CartItem cartItem;
 
-        return new CartItemResponse(savedCartItem);
+        if (request.getStatus() == CartItemStatus.CART && !request.isBuying()) {
+            Optional<CartItem> existingCartItem = cartItemRepository.findActiveCartItem(user.getId(), product.getId(), CartItemStatus.CART, false);
+
+            if (existingCartItem.isPresent()) {
+                cartItem = existingCartItem.get();
+                cartItem.addQuantity(request.getQuantity());
+            } else {
+                cartItem = cartItemRepository.save(CartItem.createCartItem(request, user, product));
+            }
+        } else {
+            cartItem = cartItemRepository.save(CartItem.createCartItem(request, user, product));
+        }
+
+        return new CartItemResponse(cartItem);
     }
 
     @Transactional(readOnly = true)
-    public CartResponse getCartItems(Long userId, Pageable pageable) {
-        Page<CartItem> cartItems = cartItemRepository.findByUserIdAndStatusAndBuyingIsFalseAndDeletedAtIsNull(userId, CartItemStatus.CART, pageable);
+    public CartResponse getCartItems(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<CartItem> cartItems = cartItemRepository.findActiveCartItems(userId, CartItemStatus.CART, false, pageable);
 
         long totalPrice = cartItems.stream()
-                .mapToLong(cartItem -> cartItem.getProduct().getPPrice() * cartItem.getQuantity())
+                .mapToLong(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
                 .sum();
 
         return new CartResponse(cartItems.map(CartItemResponse::new), totalPrice);
@@ -57,13 +73,13 @@ public class CartItemService {
         CartItem cartItem = getCartItemById(cartItemId);
         cartItem.validateOwnership(userId);
 
-        cartItem.updateQuantity(request.getOperation(), request.getQuantity());
+        cartItem.updateQuantity(request.getQuantity());
         return new CartItemResponse(cartItem);
     }
 
     @Transactional
     public List<CartItemResponse> updateCartItemsBuying(Long userId, CartItemUpdateRequest.Buying request) {
-        List<CartItem> cartItems = cartItemRepository.findAllById(request.getCt_ids());
+        List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
 
         cartItems.forEach(cartItem -> {
             cartItem.validateOwnership(userId);

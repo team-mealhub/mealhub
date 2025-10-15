@@ -6,7 +6,6 @@ import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
 import com.mealhub.backend.global.domain.exception.BadRequestException;
 import com.mealhub.backend.global.domain.exception.ForbiddenException;
-import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantCategoryEntity;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantCategoryRepository;
@@ -32,19 +31,6 @@ public class RestaurantService {
     private final RestaurantCategoryRepository restaurantCategoryRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
-
-    // 권한 확인 메서드
-    private void verifyRole(UserRole role) {
-        if (role.equals(UserRole.ROLE_CUSTOMER)) {
-            throw new ForbiddenException();
-        }
-    }
-
-    // 인증된 사용자 확인 메서드
-    private User findUser(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 유저입니다."));
-    }
 
     // 등록된 가게 확인 메서드
     private RestaurantEntity findRestaurant(UUID restaurantId) {
@@ -85,15 +71,12 @@ public class RestaurantService {
     @Transactional
     public RestaurantResponse createRestaurant(
             RestaurantRequest restaurantRequest,
-            Long userId,
-            UserRole role
+            Long userId
     ) {
 
-        // 권한 확인 : 가게 주인 or 관리자만 생성 가능
-        verifyRole(role);
-
-        // 인증된 사용자 확인
-        User findUser = findUser(userId);
+        // 등록된 유저 확인
+        User findUser = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("존재하지 않는 유저입니다."));
 
         // 등록된 주소 확인 및 소유자 확인
         Address findAddress = findAddressAndOwner(restaurantRequest,
@@ -128,12 +111,6 @@ public class RestaurantService {
     public RestaurantResponse updateRestaurant(UUID restaurantId,
             RestaurantRequest restaurantRequest, Long userId, UserRole role) {
 
-        // 권한 확인 : 가게 주인 or 관리자만 수정 가능
-        verifyRole(role);
-
-        // 인증된 사용자 확인
-        findUser(userId);
-
         // 가게 존재 확인
         RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
 
@@ -156,12 +133,6 @@ public class RestaurantService {
     // 가게 삭제
     @Transactional
     public void deleteRestaurant(UUID restaurantId, Long userId, UserRole role) {
-
-        // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
-        verifyRole(role);
-
-        // 인증된 사용자 확인
-        findUser(userId);
 
         // 가게 존재 확인
         RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
@@ -224,14 +195,7 @@ public class RestaurantService {
     // 가게 상태 변경
     @Transactional
     public RestaurantResponse changeRestaurantStatus(UUID restaurantId,
-            RestaurantRequest restaurantRequest, Long userId,
-            UserRole role) {
-
-        // 권한 확인 : 가게 주인 or 관리자만 삭제 가능
-        verifyRole(role);
-
-        // 인증된 사용자 확인
-        User findUser = findUser(userId);
+            RestaurantRequest restaurantRequest, Long userId) {
 
         // 가게 존재 확인
         RestaurantEntity restaurantEntity = findRestaurant(restaurantId);

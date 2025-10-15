@@ -1,6 +1,5 @@
 package com.mealhub.backend.cart.domain.entity;
 
-import com.mealhub.backend.cart.domain.enums.CartItemQuantityOperation;
 import com.mealhub.backend.cart.domain.enums.CartItemStatus;
 import com.mealhub.backend.cart.domain.exception.CartItemForbiddenException;
 import com.mealhub.backend.cart.domain.exception.CartItemInvalidQuantityException;
@@ -9,6 +8,8 @@ import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
 import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,7 @@ public class CartItem extends BaseAuditEntity {
     private int quantity;
 
     @Column(name = "ct_status")
+    @Enumerated(EnumType.STRING)
     private CartItemStatus status;
 
     @Column(name = "ct_is_buying")
@@ -61,15 +63,19 @@ public class CartItem extends BaseAuditEntity {
         return cartItem;
     }
 
-    public void updateQuantity(CartItemQuantityOperation operation, int quantity) {
-        if (operation == CartItemQuantityOperation.INCREASE) {
-            this.quantity += quantity;
-        } else if (operation == CartItemQuantityOperation.DECREASE) {
-            if ((this.quantity - quantity) < 1) {
-                throw CartItemInvalidQuantityException.tooLow();
-            }
-            this.quantity -= quantity;
+    public void updateQuantity(int quantity) {
+        if (quantity < 1) {
+            throw CartItemInvalidQuantityException.tooLow();
         }
+        this.quantity = quantity;
+    }
+
+    public void addQuantity(int quantity) {
+        int newQuantity = this.quantity + quantity;
+        if (newQuantity > 1000) {
+            throw CartItemInvalidQuantityException.tooHigh();
+        }
+        this.quantity = newQuantity;
     }
 
     public void updateBuying(boolean buying) {

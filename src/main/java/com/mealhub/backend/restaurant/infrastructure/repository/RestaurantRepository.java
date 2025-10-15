@@ -1,5 +1,6 @@
 package com.mealhub.backend.restaurant.infrastructure.repository;
 
+import com.mealhub.backend.restaurant.domain.entity.RestaurantCategoryEntity;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import java.util.List;
 import java.util.UUID;
@@ -67,4 +68,6 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
 
     // 유저가 해당 레스토랑의 오너인지만 확인
     boolean existsByRestaurantIdAndUser_Id(UUID restaurantId, Long userId);
+    // 카테고리로 가게 조회
+    List<RestaurantEntity> findByCategory(RestaurantCategoryEntity categoryEntity);
 }

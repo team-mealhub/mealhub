@@ -1,77 +1,71 @@
 package com.mealhub.backend.product.domain.entity;
 
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
+import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity; // ⭐️ RestaurantEntity import 추가
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity(name = "p_product")
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
-@Builder
+@NoArgsConstructor
 public class Product extends BaseAuditEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "p_id", updatable = false, nullable = false)
-    private UUID pId;
-    @Column(name = "r_id", updatable = false, nullable = false)
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID rId;
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "r_id", nullable = false)
+    private RestaurantEntity restaurant;
+
     @Column(name = "p_name", length = 20, nullable = false)
-    private String pName;
+    private String name;
+
     @Column(name = "p_description", length = 255, nullable = true)
-    private String pDescription;
+    private String description;
+
     @Column(name = "p_price", nullable = false)
-    private long pPrice;
+    private long price;
 
+    @Column(name = "p_status", nullable = false)
+    private boolean status;
 
-    public static Product createProduct(UUID rId, String pName, String pDescription, long pPrice) {
-        return Product.builder()
-                .rId(rId)
-                .pName(pName)
-                .pDescription(pDescription)
-                .pPrice(pPrice)
-                .build();
+    @Builder
+    private Product(RestaurantEntity restaurant, String name, String description, long price, boolean status) {
+        this.restaurant = restaurant;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.status = status;
     }
 
+    public static Product createProduct(RestaurantEntity restaurant, String name, String description, long price, boolean status) {
+        return Product.builder()
+                .restaurant(restaurant)
+                .name(name)
+                .description(description)
+                .price(price)
+                .status(status)
+                .build();
 
-    /* ==========================
-          비즈니스 메서드
-       ========================== */
+    }
 
     /**
      * 음식 정보 수정 (이름, 설명, 가격)
      */
     public void updateInfo(String name, String description, long price) {
         if (name != null && !name.isBlank()) {
-            this.pName = name;
+            this.name = name;
         }
-        this.pDescription = description;
-        this.pPrice = price;
+        this.description = description;
+        this.price = price;
     }
 
-    /**
-     * 음식 가격 변경
-     */
-    public void changePrice(long newPrice) {
-        if (newPrice < 0) {
-            throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
-        }
-        this.pPrice = newPrice;
+    public void setHidden(boolean isHidden) {
+        this.status = !isHidden;
     }
-
-    /**
-     * 음식 설명 변경
-     */
-    public void changeDescription(String newDescription) {
-        this.pDescription = newDescription;
-
-    }
-
 }

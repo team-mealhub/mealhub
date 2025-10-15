@@ -8,6 +8,8 @@ import com.mealhub.backend.review.presentation.dto.response.PageResult;
 import com.mealhub.backend.review.presentation.dto.response.ReviewListItemDto;
 import com.mealhub.backend.review.presentation.dto.response.ReviewResDto;
 import com.mealhub.backend.user.domain.enums.UserRole;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -22,10 +24,12 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/review")
+@Tag(name = "Review", description = "리뷰 API")
 public class ReviewController {
 
     private final ReviewService reviewService;
 
+    @Operation(summary = "리뷰 생성", description = "가게 ID(r_id)에 대한 리뷰 생성")
     @PostMapping
     public ResponseEntity<ReviewResDto> createReview(
             @RequestParam("r_id") UUID restaurantId,
@@ -39,6 +43,7 @@ public class ReviewController {
                 .body(res);
     }
 
+    @Operation(summary = "리뷰 단건 조회", description = "리뷰 ID(rv_id)로 단건 조회")
     @GetMapping("/{rv_id}")
     public ResponseEntity<ReviewResDto> getReview(
             @PathVariable("rv_id") UUID reviewId,
@@ -48,6 +53,10 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReview(reviewId, userId, role));
     }
 
+    @Operation(
+            summary = "가게 리뷰 리스트 조회",
+            description = "가게에 대한 모든 리뷰 조회. 정렬과 페이지네이션 지원. sort: latest | ratingDesc | ratingAsc"
+    )
     @GetMapping
     public ResponseEntity<PageResult<ReviewListItemDto>> getListReviews(
             @RequestParam("r_id") UUID restaurantId,
@@ -61,6 +70,7 @@ public class ReviewController {
         return ResponseEntity.ok(PageResult.of(page));
     }
 
+    @Operation(summary = "리뷰 수정", description = "별점/내용 리뷰 부분 수정")
     @PatchMapping
     public ResponseEntity<ReviewResDto> updateReview(
             @RequestBody @Valid ReviewUpdateDto reviewUpdateDto,
@@ -70,6 +80,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.updateReview(reviewUpdateDto, userId, role));
     }
 
+    @Operation(summary = "리뷰 삭제(Soft)", description = "리뷰를 소프트 삭제합니다.")
     @DeleteMapping("/{rv_id}")
     public ResponseEntity<ReviewResDto> deleteReview(
             @PathVariable("rv_id") UUID reviewId,

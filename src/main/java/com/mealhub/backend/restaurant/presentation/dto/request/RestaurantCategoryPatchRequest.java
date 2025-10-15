@@ -7,9 +7,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class RestaurantCategoryRequest {
+public class RestaurantCategoryPatchRequest {
 
     @NotBlank
     @Size(max = 20)
     private String category;
+
+    @Size(max = 20)
+    private String updatedCategory;
 }

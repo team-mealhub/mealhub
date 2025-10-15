@@ -10,10 +10,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Lazy
@@ -66,11 +63,22 @@ public class MessageUtils {
                 : getMessages(Arrays.asList(codes));
     }
 
+    public List<String> getMessages(FieldError fieldError) {
+        List<String> messages = getMessages(fieldError.getCodes());
+
+        if (messages == null || messages.isEmpty()) {
+            String defaultMessage = StringUtils.hasText(fieldError.getDefaultMessage()) ? fieldError.getDefaultMessage() : "";
+            messages = List.of(defaultMessage);
+        }
+
+        return messages;
+    }
+
     public Map<String, List<String>> getErrorMessages(Errors errors) {
         Map<String, List<String>> validationErrors = errors.getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         FieldError::getField,
-                        f -> getMessages(f.getCodes()),
+                        this::getMessages,
                         (v1, v2) -> v2
                 ));
 

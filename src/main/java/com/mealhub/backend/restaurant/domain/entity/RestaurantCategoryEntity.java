@@ -1,6 +1,8 @@
 package com.mealhub.backend.restaurant.domain.entity;
 
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
+import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryPatchRequest;
+import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -30,5 +32,16 @@ public class RestaurantCategoryEntity extends BaseAuditEntity {
     @Builder(access = AccessLevel.PRIVATE)
     private RestaurantCategoryEntity(String category) {
         this.category = category;
+    }
+
+    public static RestaurantCategoryEntity of(RestaurantCategoryRequest category) {
+        return RestaurantCategoryEntity.builder()
+                .category(category.getCategory())
+                .build();
+    }
+
+    // 가게 분류 수정 메서드
+    public void updateCategory(RestaurantCategoryPatchRequest restaurantCategoryPatchRequest) {
+        this.category = restaurantCategoryPatchRequest.getUpdatedCategory();
     }
 }

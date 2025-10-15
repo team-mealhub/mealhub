@@ -40,7 +40,7 @@ public class User extends BaseAuditEntity {
     @Setter
     private UserRole role;
 
-    @Column(name = "u_phone", length = 11)
+    @Column(name = "u_phone", length = 20)
     private String phone;
 
     private User(String userId, String username, String nickname, String password, UserRole role, String phone) {
