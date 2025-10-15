@@ -10,6 +10,7 @@ import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.domain.event.OrderCreatedEvent;
+import com.mealhub.backend.order.domain.event.OrderDeletedEvent;
 import com.mealhub.backend.order.domain.exception.EmptyCartItemException;
 import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
@@ -232,6 +233,7 @@ public class OrderService {
         // MANAGER는 모든 주문 삭제 가능
         if (UserRole.ROLE_MANAGER.equals(userRole)) {
             orderInfo.delete(deletedBy);
+            orderEventPublisher.publish(new OrderDeletedEvent(orderId, deletedBy, orderInfo.getTotal()));
             return;
         }
 
@@ -239,6 +241,7 @@ public class OrderService {
         if (UserRole.ROLE_OWNER.equals(userRole)) {
             validateOwnerRestaurant(orderInfo, deletedBy);
             orderInfo.delete(deletedBy);
+            orderEventPublisher.publish(new OrderDeletedEvent(orderId, deletedBy, orderInfo.getTotal()));
             return;
         }
 

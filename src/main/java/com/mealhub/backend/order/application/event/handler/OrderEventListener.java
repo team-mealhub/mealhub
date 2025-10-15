@@ -3,6 +3,7 @@ package com.mealhub.backend.order.application.event.handler;
 import com.mealhub.backend.cart.application.service.CartItemService;
 import com.mealhub.backend.cart.presentation.dto.request.CartItemUpdateRequest;
 import com.mealhub.backend.order.domain.event.OrderCreatedEvent;
+import com.mealhub.backend.order.domain.event.OrderDeletedEvent;
 import com.mealhub.backend.payment.application.service.PaymentService;
 import com.mealhub.backend.payment.domain.enums.PaymentStatus;
 import com.mealhub.backend.payment.presentation.dto.request.PaymentLogRequest;
@@ -22,21 +23,31 @@ public class OrderEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCreatedEvent(OrderCreatedEvent event) {
-        CartItemUpdateRequest.Buying cartItemUpdateRequest = createCartItemUpdateRequest(event);
-        cartItemService.updateCartItemsBuying(event.getUserId(), cartItemUpdateRequest);
+        cartItemService.updateCartItemsBuyingTrue(event.getUserId(), event.getCartItemIds());
 
         PaymentLogRequest.Create paymentLogRequest = createPaymentLogRequest(event);
         paymentService.createPaymentLog(paymentLogRequest);
     }
 
-    private CartItemUpdateRequest.Buying createCartItemUpdateRequest(OrderCreatedEvent event) {
-        return new CartItemUpdateRequest.Buying(
-                event.getCartItemIds(),
-                true
-        );
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleOrderDeletedEvent(OrderDeletedEvent event) {
+        cartItemService.updateCartItemsBuyingFalse(event.getUserId());
+
+        PaymentLogRequest.Create paymentLogRequest = createPaymentLogRequest(event);
+        paymentService.createPaymentLog(paymentLogRequest);
     }
 
     private PaymentLogRequest.Create createPaymentLogRequest(OrderCreatedEvent event) {
+        return new PaymentLogRequest.Create(
+                event.getOrderId(),
+                event.getUserId(),
+                event.getAmount(),
+                PaymentStatus.PENDING
+        );
+    }
+
+    private PaymentLogRequest.Create createPaymentLogRequest(OrderDeletedEvent event) {
         return new PaymentLogRequest.Create(
                 event.getOrderId(),
                 event.getUserId(),
