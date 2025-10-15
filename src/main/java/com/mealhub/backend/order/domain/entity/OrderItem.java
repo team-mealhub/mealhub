@@ -56,6 +56,15 @@ public class OrderItem extends BaseAuditEntity {
         return this.price * this.quantity;
     }
 
+    /**
+     * 주문 상품 수량 변경
+     *
+     * <p><b>현재 미사용:</b> 주문 생성 후 수량 변경을 허용하지 않는 정책으로 인해 사용되지 않습니다.
+     * 향후 주문 수정 기능이 추가될 경우 활용 가능합니다.</p>
+     *
+     * @param quantity 변경할 수량 (0보다 커야 함)
+     * @throws IllegalArgumentException 수량이 0 이하인 경우
+     */
     public void updateQuantity(Long quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
