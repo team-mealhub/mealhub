@@ -2,6 +2,7 @@ package com.mealhub.backend.order.application.event.handler;
 
 import com.mealhub.backend.cart.application.service.CartItemService;
 import com.mealhub.backend.order.application.service.OrderStatusLogService;
+import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.domain.event.OrderCreatedEvent;
 import com.mealhub.backend.order.domain.event.OrderDeletedEvent;
 import com.mealhub.backend.order.domain.event.OrderStatusUpdatedEvent;
@@ -38,6 +39,14 @@ public class OrderEventListener {
 
         PaymentLogRequest.Create paymentLogRequest = createPaymentLogRequest(event);
         paymentService.createPaymentLog(paymentLogRequest);
+
+        orderStatusLogService.createOrderStatusLog(
+                event.getOrderId(),
+                event.getUserId(),
+                event.getPrevStatus(),
+                OrderStatus.CANCELLED,
+                event.getReason()
+        );
     }
 
     @Async

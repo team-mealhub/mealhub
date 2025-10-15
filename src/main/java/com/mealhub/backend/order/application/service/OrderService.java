@@ -211,7 +211,7 @@ public class OrderService {
         OrderStatus prevStatus = orderInfo.getStatus();
         OrderStatus currStatus = request.getOStatus();
 
-        orderInfo.updateStatus(currStatus, request.getReason());
+        orderInfo.updateStatus(currStatus);
 
         orderEventPublisher.publish(new OrderStatusUpdatedEvent(orderId, currentUserId, prevStatus, currStatus, request.getReason()));
         return OrderResponse.from(orderInfo);
@@ -226,9 +226,10 @@ public class OrderService {
         // CUSTOMER는 본인 주문만 취소 가능
         validateCustomerOwnership(orderInfo, currentUserId);
 
-        orderInfo.cancel(reason);
+        OrderStatus prevStatus = orderInfo.getStatus();
+        orderInfo.cancel();
 
-        orderEventPublisher.publish(new OrderDeletedEvent(orderId, currentUserId, orderInfo.getTotal()));
+        orderEventPublisher.publish(new OrderDeletedEvent(orderId, currentUserId, orderInfo.getTotal(), prevStatus, reason));
         return OrderResponse.from(orderInfo);
     }
 
@@ -238,10 +239,12 @@ public class OrderService {
         OrderInfo orderInfo = orderInfoRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Order.NotFound"));
 
+        OrderStatus prevStatus = orderInfo.getStatus();
+
         // MANAGER는 모든 주문 삭제 가능
         if (UserRole.ROLE_MANAGER.equals(userRole)) {
             orderInfo.delete(deletedBy);
-            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal()));
+            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal(), prevStatus, "관리자 삭제"));
             return;
         }
 
@@ -249,7 +252,7 @@ public class OrderService {
         if (UserRole.ROLE_OWNER.equals(userRole)) {
             validateOwnerRestaurant(orderInfo, deletedBy);
             orderInfo.delete(deletedBy);
-            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal()));
+            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal(), prevStatus, "점주 삭제"));
             return;
         }
 
