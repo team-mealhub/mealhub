@@ -1,11 +1,9 @@
 package com.mealhub.backend.address.infrastructure.repository;
-
 import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.user.domain.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -28,12 +26,6 @@ public interface AddressRepository extends JpaRepository<Address, UUID> {
 
     // 사용자 주소 조회(id기준)
     Optional<Address> findByIdAndUserAndDeletedFalse(UUID id, User user);
-
-    // soft-delete
-    @Modifying
-    @Query("UPDATE Address a SET a.deleted = true WHERE a.id = :id AND a.user = :user AND a.deleted = false")
-    void softDeleteByIdAndUser(@Param("id") UUID id, @Param("user") User user);
-
 
     // 검색 기능(keyword포함 된 주소 조회 / 페이징 적용)
     @Query("""

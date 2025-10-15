@@ -9,8 +9,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,7 +48,7 @@ public class AddressController {
 
     @Operation(summary = "주소 전체 조회", description = "검색어를 포함해 전체 주소 페이징 조회")
     @GetMapping
-    public ResponseEntity<Page<AddressResponse>> getAllAddresses(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam(required = false) String keyword, Pageable pageable) {
+    public ResponseEntity<Page<AddressResponse>> getAllAddresses(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam(required = false) String keyword, @ParameterObject @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         User currentUser = userDetails.toUser();
         Page<AddressResponse> addressResponses = addressService.getAllAddresses(currentUser, keyword, pageable);
         return ResponseEntity.ok(addressResponses);
