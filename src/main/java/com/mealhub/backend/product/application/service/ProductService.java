@@ -27,7 +27,6 @@ public class ProductService {
           1. 상품 생성 (Create)
        ========================== */
 
-
     @Transactional
     public ProductResponse createProduct(ProductRequest productRequest, Long userId) {
 
@@ -35,7 +34,6 @@ public class ProductService {
                 .orElseThrow(() -> new BadRequestException("유효하지 않은 레스토랑 ID입니다."));
 
         validateRestaurantOwner(restaurant, userId);
-
 
         Product product = Product.createProduct(
                 restaurant,
@@ -49,9 +47,8 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         // 3. 응답 DTO로 변환하여 반환
-        return ProductResponse.from(savedProduct); // ProductResponse의 from() 메서드를 사용한다고 가정
+        return ProductResponse.from(savedProduct);
     }
-
 
     @Transactional
     public ProductResponse getProduct(UUID pId) {
@@ -60,10 +57,8 @@ public class ProductService {
         return ProductResponse.from(product);
     }
 
-
     @Transactional
     public List<ProductResponse> getVisibleProductsByRestaurant(UUID rId) {
-        // findAllByRIdAndStatus(UUID rId, boolean status)를 사용한다고 가정
         List<Product> products = productRepository.findAllByRestaurantRestaurantIdAndStatus(rId, true);
 
         return products.stream()
@@ -73,28 +68,22 @@ public class ProductService {
 
     @Transactional
     public ProductResponse updateProduct(UUID pId, ProductRequest productRequest,Long userId) {
-        // 1. 상품 조회 (없으면 예외 발생)
+
         Product product = productRepository.findById(pId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         validateRestaurantOwner(product.getRestaurant(), userId);
 
-        // 2. 엔티티의 비즈니스 메서드를 이용한 정보 수정
         product.updateInfo(
                 productRequest.getPName(),
                 productRequest.getPDescription(),
                 productRequest.getPPrice()
         );
 
-        // @Transactional에 의해 자동 저장(더티 체킹)되므로 별도 save() 호출 불필요
-
-        // 3. 응답 DTO로 변환하여 반환
         return ProductResponse.from(product);
     }
 
-
     //상품 삭제
-
     @Transactional
     public void deleteProduct(UUID pId,Long userId) {
 
@@ -102,11 +91,9 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         validateRestaurantOwner(product.getRestaurant(), userId);
-        // 삭제 전 해당 상품이 존재하는지 확인하거나,
+
              productRepository.deleteById(pId);
     }
-
-
 
     public Page<ProductResponse> searchProducts(UUID restaurantId, String keyword, Pageable pageable) {
         Page<Product> productPage;
@@ -143,13 +130,4 @@ public class ProductService {
             throw new BadRequestException("해당 상품에 대한 수정/삭제 권한이 없습니다.");
         }
     }
-
-
-
-
-
-
-
-
-
 }
