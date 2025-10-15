@@ -2,9 +2,13 @@ package com.mealhub.backend.order.application.service;
 
 import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
+import com.mealhub.backend.cart.domain.entity.CartItem;
+import com.mealhub.backend.cart.domain.exception.CartItemForbiddenException;
+import com.mealhub.backend.cart.infrastructure.repository.CartItemRepository;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
+import com.mealhub.backend.order.domain.exception.EmptyCartItemException;
 import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
 import com.mealhub.backend.order.infrastructure.repository.OrderInfoRepository;
@@ -13,7 +17,6 @@ import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateReque
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
 import com.mealhub.backend.product.domain.entity.Product;
-import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.user.domain.enums.UserRole;
@@ -34,7 +37,7 @@ public class OrderService {
 
     private final OrderInfoRepository orderInfoRepository;
     private final RestaurantRepository restaurantRepository;
-    private final ProductRepository productRepository;
+    private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
@@ -69,7 +72,15 @@ public class OrderService {
             throw new OrderForbiddenException("Address.Forbidden.NotOwned");
         }
 
-        // 3. 주문 정보 생성
+        // 3. 장바구니 아이템 조회 및 검증
+        List<CartItem> cartItems = cartItemRepository.findAllWithProductByIdIn(request.getCartItemIds());
+        if (cartItems.isEmpty()) {
+            throw new EmptyCartItemException();
+        }
+
+        validateCartItemsOwnership(cartItems, userId);
+
+        // 4. 주문 정보 생성
         OrderInfo orderInfo = OrderInfo.createOrder(
                 userId,
                 request.getRId(),
@@ -77,17 +88,17 @@ public class OrderService {
                 request.getORequirements()
         );
 
-        // 4. 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
-        for (OrderCreateRequest.OrderItemRequest itemRequest : request.getItems()) {
-            Product product = productRepository.findById(itemRequest.getPId())
-                    .orElseThrow(() -> new OrderNotFoundException("Product.NotFound"));
+        // 5. 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
+        for (CartItem cartItem : cartItems) {
+            Product product = cartItem.getProduct();
 
             OrderItem orderItem = OrderItem.createOrderItem(
                     product.getId(),
                     product.getName(),
                     product.getPrice(),
-                    itemRequest.getQuantity()
+                    (long) cartItem.getQuantity()
             );
+
             orderInfo.addOrderItem(orderItem);
         }
 
@@ -225,5 +236,13 @@ public class OrderService {
         }
 
         throw new OrderForbiddenException("Order.Forbidden.NoAuth");
+    }
+
+    private void validateCartItemsOwnership(List<CartItem> cartItems, Long userId) {
+        for (CartItem cartItem : cartItems) {
+            if (!cartItem.getUser().getId().equals(userId)) {
+                throw new CartItemForbiddenException();
+            }
+        }
     }
 }
