@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Table(name = "p_cart_item")
@@ -86,5 +87,12 @@ public class CartItem extends BaseAuditEntity {
         if (!this.user.getId().equals(userId)) {
             throw new CartItemForbiddenException();
         }
+    }
+
+    public void delete(Long userId) {
+        validateOwnership(userId);
+
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = userId;
     }
 }

@@ -86,7 +86,7 @@ public class CartItemService {
         cartItems.forEach(cartItem -> {
             cartItem.validateOwnership(userId);
             if (!buying && cartItem.getStatus() == CartItemStatus.DIRECT) {
-                deleteCartItem(userId, cartItem.getId());
+                cartItem.delete(userId);
             } else {
                 cartItem.updateBuying(buying);
             }
@@ -98,10 +98,8 @@ public class CartItemService {
     @Transactional
     public CartItemResponse deleteCartItem(Long userId, UUID cartItemId) {
         CartItem cartItem = getCartItemById(cartItemId);
-        cartItem.validateOwnership(userId);
 
-        cartItem.setDeletedAt(LocalDateTime.now());
-        cartItem.setDeletedBy(userId);
+        cartItem.delete(userId);
 
         return new CartItemResponse(cartItem);
     }
