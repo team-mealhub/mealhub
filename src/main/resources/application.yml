@@ -43,3 +43,8 @@ springdoc:
     doc-expansion: none
   paths-to-match:
     - /v1/**
+
+# Gemini API Key
+gemini:
+  apikey: ${GEMINI_API_KEY}
+  model: gemini-2.5-flash
