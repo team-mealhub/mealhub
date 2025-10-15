@@ -74,7 +74,7 @@ public class ReviewService {
 
         // 배달이 완료된 주문만 허용
         if (order.getStatus() != OrderStatus.DELIVERED) {
-            throw new ForbiddenException("REVIEW_ALLOWED_ONLY_AFTER_DELIVERED");
+            throw new ReviewOnlyAfterDeliveredException();
         }
 
         // 주문에 저장된 가게로 매핑
