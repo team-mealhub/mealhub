@@ -5,6 +5,7 @@ import com.mealhub.backend.global.presentation.dto.ErrorResponse;
 import com.mealhub.backend.order.application.service.OrderService;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
+import com.mealhub.backend.order.presentation.dto.request.OrderCreateFromCartRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
@@ -58,6 +59,28 @@ public class OrderController {
     ) {
         Long userId = userDetails.getId();
         OrderResponse response = orderService.createOrder(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(
+            summary = "장바구니에서 주문 생성",
+            description = "장바구니에서 선택한 상품(buying=true)으로 주문을 생성합니다. 고객(CUSTOMER)만 사용 가능하며, 주문 완료 후 장바구니 아이템은 삭제됩니다."
+    )
+    @ApiResponse(responseCode = "201", description = "주문 생성 성공")
+    @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터 또는 장바구니가 비어있음",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "403", description = "서로 다른 레스토랑의 상품이 포함됨",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "배송지 또는 레스토랑을 찾을 수 없음",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PostMapping("/from-cart")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<OrderResponse> createOrderFromCart(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody @Valid OrderCreateFromCartRequest request
+    ) {
+        Long userId = userDetails.getId();
+        OrderResponse response = orderService.createOrderFromCart(userId, request.getAId(), request.getORequirements());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

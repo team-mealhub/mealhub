@@ -36,6 +36,7 @@ public class OrderService {
     private final RestaurantRepository restaurantRepository;
     private final ProductRepository productRepository;
     private final AddressRepository addressRepository;
+    private final com.mealhub.backend.cart.infrastructure.repository.CartItemRepository cartItemRepository;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
@@ -92,6 +93,70 @@ public class OrderService {
         }
 
         OrderInfo savedOrder = orderInfoRepository.save(orderInfo);
+        return OrderResponse.from(savedOrder);
+    }
+
+    // 장바구니에서 주문 생성
+    @Transactional
+    public OrderResponse createOrderFromCart(Long userId, UUID addressId, String requirements) {
+        // 1. Address 검증 (존재 여부 및 소유권)
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new OrderNotFoundException("Address.NotFound"));
+
+        if (!address.getUser().getId().equals(userId)) {
+            throw new OrderForbiddenException("Address.Forbidden.NotOwned");
+        }
+
+        // 2. buying=true인 장바구니 아이템 조회 (Product FETCH JOIN)
+        java.util.List<com.mealhub.backend.cart.domain.entity.CartItem> cartItems =
+                cartItemRepository.findByUserIdAndBuyingIsTrueAndDeletedAtIsNull(userId);
+
+        if (cartItems.isEmpty()) {
+            throw new OrderNotFoundException("Cart.Empty");
+        }
+
+        // 3. 모든 상품이 같은 레스토랑인지 검증
+        UUID restaurantId = cartItems.get(0).getProduct().getRestaurant().getRestaurantId();
+        boolean allSameRestaurant = cartItems.stream()
+                .allMatch(item -> item.getProduct().getRestaurant().getRestaurantId().equals(restaurantId));
+
+        if (!allSameRestaurant) {
+            throw new OrderForbiddenException("Order.DifferentRestaurants");
+        }
+
+        // 4. Restaurant 검증 (존재 여부)
+        RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new OrderNotFoundException("Restaurant.NotFound"));
+
+        // 5. 주문 정보 생성
+        OrderInfo orderInfo = OrderInfo.createOrder(
+                userId,
+                restaurantId,
+                addressId,
+                requirements
+        );
+
+        // 6. 장바구니 아이템을 주문 상품으로 변환
+        for (com.mealhub.backend.cart.domain.entity.CartItem cartItem : cartItems) {
+            Product product = cartItem.getProduct();
+            OrderItem orderItem = OrderItem.createOrderItem(
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
+                    (long) cartItem.getQuantity()
+            );
+            orderInfo.addOrderItem(orderItem);
+        }
+
+        // 7. 주문 저장
+        OrderInfo savedOrder = orderInfoRepository.save(orderInfo);
+
+        // 8. 장바구니 아이템 소프트 삭제
+        for (com.mealhub.backend.cart.domain.entity.CartItem cartItem : cartItems) {
+            cartItem.setDeletedAt(java.time.LocalDateTime.now());
+            cartItem.setDeletedBy(userId);
+        }
+
         return OrderResponse.from(savedOrder);
     }
 
