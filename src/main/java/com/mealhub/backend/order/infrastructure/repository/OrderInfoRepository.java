@@ -79,12 +79,4 @@ public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
      */
     @Query("SELECT o FROM OrderInfo o LEFT JOIN FETCH o.items WHERE o.oInfoId = :orderId")
     java.util.Optional<OrderInfo> findByIdWithItems(@Param("orderId") UUID orderId);
-
-    /**
-     * Check if payment is already used for an order
-     *
-     * @param paymentId the payment ID
-     * @return true if payment is already used, false otherwise
-     */
-    boolean existsByPaymentId(UUID paymentId);
 }

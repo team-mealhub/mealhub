@@ -19,7 +19,6 @@ public class OrderDetailResponse {
     private Long userId;
     private UUID restaurantId;
     private UUID addressId;
-    private UUID paymentId;
     private Long total;
     private OrderStatus status;
     private String requirements;
@@ -52,7 +51,6 @@ public class OrderDetailResponse {
                 .userId(orderInfo.getUserId())
                 .restaurantId(orderInfo.getRestaurantId())
                 .addressId(orderInfo.getAddressId())
-                .paymentId(orderInfo.getPaymentId())
                 .total(orderInfo.getTotal())
                 .status(orderInfo.getStatus())
                 .requirements(orderInfo.getRequirements())

@@ -10,9 +10,6 @@ import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
-import com.mealhub.backend.payment.domain.entity.PaymentLog;
-import com.mealhub.backend.payment.domain.enums.PaymentStatus;
-import com.mealhub.backend.payment.domain.repository.PaymentLogRepository;
 import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
@@ -55,9 +52,6 @@ class OrderServiceTest {
     @Mock
     private com.mealhub.backend.address.infrastructure.repository.AddressRepository addressRepository;
 
-    @Mock
-    private PaymentLogRepository paymentLogRepository;
-
     @InjectMocks
     private OrderService orderService;
 
@@ -69,7 +63,6 @@ class OrderServiceTest {
         UUID restaurantId = UUID.randomUUID();
         UUID addressId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-        UUID paymentId = UUID.randomUUID();
 
         OrderCreateRequest.OrderItemRequest itemRequest = new OrderCreateRequest.OrderItemRequest();
         itemRequest.setPId(productId);
@@ -78,17 +71,8 @@ class OrderServiceTest {
         OrderCreateRequest request = new OrderCreateRequest();
         request.setRId(restaurantId);
         request.setAId(addressId);
-        request.setPaymentId(paymentId);
         request.setORequirements("빨리 배달해주세요");
         request.setItems(List.of(itemRequest));
-
-        // Payment Mock 설정
-        PaymentLog payment = mock(PaymentLog.class);
-        when(payment.getStatus()).thenReturn(PaymentStatus.COMPLETED);
-        when(payment.getUserId()).thenReturn(userId);
-        when(payment.getAmount()).thenReturn(40000L);  // 치킨 20000 * 2
-        when(paymentLogRepository.findById(paymentId)).thenReturn(Optional.of(payment));
-        when(orderInfoRepository.existsByPaymentId(paymentId)).thenReturn(false);
 
         // Restaurant Mock 설정
         RestaurantEntity restaurant = mock(RestaurantEntity.class);
@@ -109,7 +93,7 @@ class OrderServiceTest {
         when(product.getPrice()).thenReturn(20000L);
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
-        OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, request.getORequirements(), paymentId);
+        OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, request.getORequirements());
         when(orderInfoRepository.save(any(OrderInfo.class))).thenReturn(orderInfo);
 
         // when
@@ -119,7 +103,6 @@ class OrderServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getOInfoId()).isEqualTo(orderInfo.getOInfoId());
         assertThat(response.getStatus()).isEqualTo(OrderStatus.PENDING);
-        verify(paymentLogRepository, times(1)).findById(paymentId);
         verify(productRepository, times(1)).findById(productId);
         verify(orderInfoRepository, times(1)).save(any(OrderInfo.class));
     }
@@ -132,7 +115,7 @@ class OrderServiceTest {
         Long currentUserId = 1L;
         UserRole userRole = UserRole.ROLE_MANAGER;
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when
@@ -151,7 +134,7 @@ class OrderServiceTest {
         Long currentUserId = 1L;
         UserRole userRole = UserRole.ROLE_CUSTOMER;
 
-        OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when
@@ -169,7 +152,7 @@ class OrderServiceTest {
         Long currentUserId = 1L;
         UserRole userRole = UserRole.ROLE_CUSTOMER;
 
-        OrderInfo orderInfo = OrderInfo.createOrder(999L, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(999L, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when & then
@@ -188,7 +171,7 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_OWNER;
         UUID otherRestaurantId = UUID.randomUUID();
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null);
         when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         User otherUser = mock(User.class);
@@ -225,7 +208,7 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_CUSTOMER;
         Pageable pageable = PageRequest.of(0, 10);
 
-        OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null);
         Page<OrderInfo> page = new PageImpl<>(List.of(orderInfo));
 
         when(orderInfoRepository.searchOrders(eq(currentUserId), isNull(), isNull(), isNull(), isNull(), eq(pageable)))
@@ -250,7 +233,7 @@ class OrderServiceTest {
         UUID ownerRestaurantId = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, ownerRestaurantId, UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, ownerRestaurantId, UUID.randomUUID(), null);
         Page<OrderInfo> page = new PageImpl<>(List.of(orderInfo));
 
         User ownerUser = mock(User.class);
@@ -294,8 +277,8 @@ class OrderServiceTest {
         when(restaurantRepository.findByUser_Id(currentUserId))
                 .thenReturn(List.of(restaurant1, restaurant2));
 
-        OrderInfo order1 = OrderInfo.createOrder(2L, restaurant1Id, UUID.randomUUID(), null, null);
-        OrderInfo order2 = OrderInfo.createOrder(3L, restaurant2Id, UUID.randomUUID(), null, null);
+        OrderInfo order1 = OrderInfo.createOrder(2L, restaurant1Id, UUID.randomUUID(), null);
+        OrderInfo order2 = OrderInfo.createOrder(3L, restaurant2Id, UUID.randomUUID(), null);
         Page<OrderInfo> page = new PageImpl<>(List.of(order1, order2));
 
         when(orderInfoRepository.searchOrders(isNull(), eq(List.of(restaurant1Id, restaurant2Id)), isNull(), isNull(), isNull(), eq(pageable)))
@@ -324,7 +307,7 @@ class OrderServiceTest {
         request.setOStatus(OrderStatus.IN_PROGRESS);
         request.setReason("조리 시작");
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, ownerRestaurantId, UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, ownerRestaurantId, UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         User ownerUser = mock(User.class);
@@ -354,7 +337,7 @@ class OrderServiceTest {
         request.setOStatus(OrderStatus.IN_PROGRESS);
         request.setReason("조리 시작");
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         User otherUser = mock(User.class);
@@ -378,7 +361,7 @@ class OrderServiceTest {
         Long currentUserId = 1L;
         String reason = "변심";
 
-        OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when
@@ -396,7 +379,7 @@ class OrderServiceTest {
         Long currentUserId = 1L;
         String reason = "변심";
 
-        OrderInfo orderInfo = OrderInfo.createOrder(999L, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(999L, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when & then
@@ -413,7 +396,7 @@ class OrderServiceTest {
         Long deletedBy = 1L;
         UserRole userRole = UserRole.ROLE_MANAGER;
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when
@@ -433,7 +416,7 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_OWNER;
         UUID ownerRestaurantId = UUID.randomUUID();
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, ownerRestaurantId, UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, ownerRestaurantId, UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         User ownerUser = mock(User.class);
@@ -461,7 +444,7 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_OWNER;
         UUID otherRestaurantId = UUID.randomUUID();
 
-        OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         User otherUser = mock(User.class);
@@ -485,7 +468,7 @@ class OrderServiceTest {
         Long deletedBy = 1L;
         UserRole userRole = UserRole.ROLE_CUSTOMER;
 
-        OrderInfo orderInfo = OrderInfo.createOrder(deletedBy, UUID.randomUUID(), UUID.randomUUID(), null, null);
+        OrderInfo orderInfo = OrderInfo.createOrder(deletedBy, UUID.randomUUID(), UUID.randomUUID(), null);
         when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when & then

@@ -2,19 +2,17 @@ package com.mealhub.backend.order.application.service;
 
 import com.mealhub.backend.address.domain.entity.Address;
 import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
-import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
-import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
+import com.mealhub.backend.cart.infrastructure.repository.CartItemRepository;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
+import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
+import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
 import com.mealhub.backend.order.infrastructure.repository.OrderInfoRepository;
 import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
 import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateRequest;
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
-import com.mealhub.backend.payment.domain.entity.PaymentLog;
-import com.mealhub.backend.payment.domain.enums.PaymentStatus;
-import com.mealhub.backend.payment.domain.repository.PaymentLogRepository;
 import com.mealhub.backend.product.domain.entity.Product;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
@@ -39,8 +37,7 @@ public class OrderService {
     private final RestaurantRepository restaurantRepository;
     private final ProductRepository productRepository;
     private final AddressRepository addressRepository;
-    private final com.mealhub.backend.cart.infrastructure.repository.CartItemRepository cartItemRepository;
-    private final PaymentLogRepository paymentLogRepository;
+    private final CartItemRepository cartItemRepository;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
@@ -59,41 +56,14 @@ public class OrderService {
         }
     }
 
-    // 결제 검증: 결제 완료 여부, 소유권, 중복 사용 확인
-    private PaymentLog validatePayment(UUID paymentId, Long userId) {
-        // 1. 결제 존재 확인
-        PaymentLog payment = paymentLogRepository.findById(paymentId)
-                .orElseThrow(() -> new OrderNotFoundException("Payment.NotFound"));
-
-        // 2. 결제 완료 상태 확인
-        if (payment.getStatus() != PaymentStatus.COMPLETED) {
-            throw new OrderForbiddenException("Order.Payment.NotCompleted");
-        }
-
-        // 3. 결제 소유권 확인
-        if (!payment.getUserId().equals(userId)) {
-            throw new OrderForbiddenException("Order.Payment.NotOwned");
-        }
-
-        // 4. 결제 중복 사용 방지
-        if (orderInfoRepository.existsByPaymentId(paymentId)) {
-            throw new OrderForbiddenException("Order.Payment.AlreadyUsed");
-        }
-
-        return payment;
-    }
-
     // 주문 생성
     @Transactional
     public OrderResponse createOrder(Long userId, OrderCreateRequest request) {
-        // 1. 결제 검증 (최우선)
-        PaymentLog payment = validatePayment(request.getPaymentId(), userId);
-
-        // 2. Restaurant 검증 (존재 여부)
+        // 1. Restaurant 검증 (존재 여부)
         RestaurantEntity restaurant = restaurantRepository.findById(request.getRId())
                 .orElseThrow(() -> new OrderNotFoundException("Restaurant.NotFound"));
 
-        // 3. Address 검증 (존재 여부 및 소유권)
+        // 2. Address 검증 (존재 여부 및 소유권)
         Address address = addressRepository.findById(request.getAId())
                 .orElseThrow(() -> new OrderNotFoundException("Address.NotFound"));
 
@@ -101,16 +71,15 @@ public class OrderService {
             throw new OrderForbiddenException("Address.Forbidden.NotOwned");
         }
 
-        // 4. 주문 정보 생성 (paymentId 포함)
+        // 3. 주문 정보 생성
         OrderInfo orderInfo = OrderInfo.createOrder(
                 userId,
                 request.getRId(),
                 request.getAId(),
-                request.getORequirements(),
-                request.getPaymentId()
+                request.getORequirements()
         );
 
-        // 5. 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
+        // 4. 주문 상품 추가 (Product 엔티티에서 실제 가격과 상품명 조회)
         for (OrderCreateRequest.OrderItemRequest itemRequest : request.getItems()) {
             Product product = productRepository.findById(itemRequest.getPId())
                     .orElseThrow(() -> new OrderNotFoundException("Product.NotFound"));
@@ -124,22 +93,14 @@ public class OrderService {
             orderInfo.addOrderItem(orderItem);
         }
 
-        // 6. 결제 금액과 주문 총액 일치 확인
-        if (!orderInfo.getTotal().equals(payment.getAmount())) {
-            throw new OrderForbiddenException("Order.Payment.AmountMismatch");
-        }
-
         OrderInfo savedOrder = orderInfoRepository.save(orderInfo);
         return OrderResponse.from(savedOrder);
     }
 
     // 장바구니에서 주문 생성
     @Transactional
-    public OrderResponse createOrderFromCart(Long userId, UUID addressId, String requirements, UUID paymentId) {
-        // 1. 결제 검증 (최우선)
-        PaymentLog payment = validatePayment(paymentId, userId);
-
-        // 2. Address 검증 (존재 여부 및 소유권)
+    public OrderResponse createOrderFromCart(Long userId, UUID addressId, String requirements) {
+        // 1. Address 검증 (존재 여부 및 소유권)
         Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new OrderNotFoundException("Address.NotFound"));
 
@@ -147,7 +108,7 @@ public class OrderService {
             throw new OrderForbiddenException("Address.Forbidden.NotOwned");
         }
 
-        // 3. buying=true인 장바구니 아이템 조회 (Product FETCH JOIN)
+        // 2. buying=true인 장바구니 아이템 조회 (Product FETCH JOIN)
         java.util.List<com.mealhub.backend.cart.domain.entity.CartItem> cartItems =
                 cartItemRepository.findByUserIdAndBuyingIsTrueAndDeletedAtIsNull(userId);
 
@@ -155,7 +116,7 @@ public class OrderService {
             throw new OrderNotFoundException("Cart.Empty");
         }
 
-        // 4. 모든 상품이 같은 레스토랑인지 검증
+        // 3. 모든 상품이 같은 레스토랑인지 검증
         UUID restaurantId = cartItems.get(0).getProduct().getRestaurant().getRestaurantId();
         boolean allSameRestaurant = cartItems.stream()
                 .allMatch(item -> item.getProduct().getRestaurant().getRestaurantId().equals(restaurantId));
@@ -164,20 +125,19 @@ public class OrderService {
             throw new OrderForbiddenException("Order.DifferentRestaurants");
         }
 
-        // 5. Restaurant 검증 (존재 여부)
+        // 4. Restaurant 검증 (존재 여부)
         RestaurantEntity restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new OrderNotFoundException("Restaurant.NotFound"));
 
-        // 6. 주문 정보 생성 (paymentId 포함)
+        // 5. 주문 정보 생성
         OrderInfo orderInfo = OrderInfo.createOrder(
                 userId,
                 restaurantId,
                 addressId,
-                requirements,
-                paymentId
+                requirements
         );
 
-        // 7. 장바구니 아이템을 주문 상품으로 변환
+        // 6. 장바구니 아이템을 주문 상품으로 변환
         for (com.mealhub.backend.cart.domain.entity.CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
             OrderItem orderItem = OrderItem.createOrderItem(
@@ -189,15 +149,10 @@ public class OrderService {
             orderInfo.addOrderItem(orderItem);
         }
 
-        // 8. 결제 금액과 주문 총액 일치 확인
-        if (!orderInfo.getTotal().equals(payment.getAmount())) {
-            throw new OrderForbiddenException("Order.Payment.AmountMismatch");
-        }
-
-        // 9. 주문 저장
+        // 7. 주문 저장
         OrderInfo savedOrder = orderInfoRepository.save(orderInfo);
 
-        // 10. 장바구니 아이템 소프트 삭제
+        // 8. 장바구니 아이템 소프트 삭제
         for (com.mealhub.backend.cart.domain.entity.CartItem cartItem : cartItems) {
             cartItem.setDeletedAt(java.time.LocalDateTime.now());
             cartItem.setDeletedBy(userId);

@@ -83,8 +83,7 @@ public class OrderController {
         OrderResponse response = orderService.createOrderFromCart(
                 userId,
                 request.getAId(),
-                request.getORequirements(),
-                request.getPaymentId()
+                request.getORequirements()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
