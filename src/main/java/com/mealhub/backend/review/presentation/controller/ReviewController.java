@@ -1,10 +1,10 @@
 package com.mealhub.backend.review.presentation.controller;
 
 import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
+import com.mealhub.backend.global.presentation.dto.PageResult;
 import com.mealhub.backend.review.application.service.ReviewService;
 import com.mealhub.backend.review.presentation.dto.request.ReviewCreateDto;
 import com.mealhub.backend.review.presentation.dto.request.ReviewUpdateDto;
-import com.mealhub.backend.review.presentation.dto.response.PageResult;
 import com.mealhub.backend.review.presentation.dto.response.ReviewListItemDto;
 import com.mealhub.backend.review.presentation.dto.response.ReviewResDto;
 import com.mealhub.backend.user.domain.enums.UserRole;
