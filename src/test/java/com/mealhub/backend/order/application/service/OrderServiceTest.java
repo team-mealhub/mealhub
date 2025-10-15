@@ -1,9 +1,14 @@
 package com.mealhub.backend.order.application.service;
 
+import com.mealhub.backend.address.domain.entity.Address;
+import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
+import com.mealhub.backend.cart.domain.entity.CartItem;
+import com.mealhub.backend.cart.infrastructure.repository.CartItemRepository;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
+import com.mealhub.backend.order.application.event.publisher.OrderEventPublisher;
+import com.mealhub.backend.order.domain.event.OrderEvent;
 import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
-import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.infrastructure.repository.OrderInfoRepository;
 import com.mealhub.backend.order.presentation.dto.request.OrderCreateRequest;
@@ -11,7 +16,6 @@ import com.mealhub.backend.order.presentation.dto.request.OrderStatusUpdateReque
 import com.mealhub.backend.order.presentation.dto.response.OrderDetailResponse;
 import com.mealhub.backend.order.presentation.dto.response.OrderResponse;
 import com.mealhub.backend.product.domain.entity.Product;
-import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.user.domain.entity.User;
@@ -27,7 +31,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,10 +50,13 @@ class OrderServiceTest {
     private RestaurantRepository restaurantRepository;
 
     @Mock
-    private ProductRepository productRepository;
+    private CartItemRepository cartItemRepository;
 
     @Mock
-    private com.mealhub.backend.address.infrastructure.repository.AddressRepository addressRepository;
+    private AddressRepository addressRepository;
+
+    @Mock
+    private OrderEventPublisher orderEventPublisher;
 
     @InjectMocks
     private OrderService orderService;
@@ -62,17 +68,15 @@ class OrderServiceTest {
         Long userId = 1L;
         UUID restaurantId = UUID.randomUUID();
         UUID addressId = UUID.randomUUID();
+        UUID cartItemId = UUID.randomUUID();
         UUID productId = UUID.randomUUID();
-
-        OrderCreateRequest.OrderItemRequest itemRequest = new OrderCreateRequest.OrderItemRequest();
-        itemRequest.setPId(productId);
-        itemRequest.setQuantity(2L);
+        List<UUID> cartItemIds = List.of(cartItemId);
 
         OrderCreateRequest request = new OrderCreateRequest();
         request.setRId(restaurantId);
         request.setAId(addressId);
         request.setORequirements("빨리 배달해주세요");
-        request.setItems(List.of(itemRequest));
+        request.setCartItemIds(cartItemIds);
 
         // Restaurant Mock 설정
         RestaurantEntity restaurant = mock(RestaurantEntity.class);
@@ -82,7 +86,7 @@ class OrderServiceTest {
         User user = mock(User.class);
         when(user.getId()).thenReturn(userId);
 
-        com.mealhub.backend.address.domain.entity.Address address = mock(com.mealhub.backend.address.domain.entity.Address.class);
+        Address address = mock(Address.class);
         when(address.getUser()).thenReturn(user);
         when(addressRepository.findById(addressId)).thenReturn(Optional.of(address));
 
@@ -91,7 +95,14 @@ class OrderServiceTest {
         when(product.getId()).thenReturn(productId);
         when(product.getName()).thenReturn("치킨");
         when(product.getPrice()).thenReturn(20000L);
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+
+        // CartItem Mock 설정
+        CartItem cartItem = mock(CartItem.class);
+        when(cartItem.getProduct()).thenReturn(product);
+        when(cartItem.getUser()).thenReturn(user);
+        when(cartItem.getQuantity()).thenReturn(2);
+        when(cartItemRepository.findAllWithProductByIdIn(cartItemIds))
+                .thenReturn(List.of(cartItem));
 
         OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, request.getORequirements());
         when(orderInfoRepository.save(any(OrderInfo.class))).thenReturn(orderInfo);
@@ -103,7 +114,9 @@ class OrderServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getOInfoId()).isEqualTo(orderInfo.getOInfoId());
         assertThat(response.getStatus()).isEqualTo(OrderStatus.PENDING);
-        verify(productRepository, times(1)).findById(productId);
+
+        verify(cartItemRepository, times(1)).findAllWithProductByIdIn(any());
+        verify(orderEventPublisher, times(1)).publish(any(OrderEvent.class));
         verify(orderInfoRepository, times(1)).save(any(OrderInfo.class));
     }
 
@@ -322,6 +335,8 @@ class OrderServiceTest {
 
         // then
         assertThat(response.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
+
+        verify(orderEventPublisher, times(1)).publish(any(OrderEvent.class));
     }
 
     @Test
@@ -369,6 +384,8 @@ class OrderServiceTest {
 
         // then
         assertThat(response.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+
+        verify(orderEventPublisher, times(1)).publish(any(OrderEvent.class));
     }
 
     @Test
@@ -405,6 +422,8 @@ class OrderServiceTest {
         // then
         assertThat(orderInfo.getDeletedAt()).isNotNull();
         assertThat(orderInfo.getDeletedBy()).isEqualTo(deletedBy);
+
+        verify(orderEventPublisher, times(1)).publish(any(OrderEvent.class));
     }
 
     @Test
@@ -432,6 +451,8 @@ class OrderServiceTest {
         // then
         assertThat(orderInfo.getDeletedAt()).isNotNull();
         assertThat(orderInfo.getDeletedBy()).isEqualTo(deletedBy);
+
+        verify(orderEventPublisher, times(1)).publish(any(OrderEvent.class));
     }
 
     @Test

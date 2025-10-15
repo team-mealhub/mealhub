@@ -67,16 +67,10 @@ class OrderInfoTest {
         String reason = "조리 시작";
 
         // when
-        orderInfo.updateStatus(newStatus, reason);
+        orderInfo.updateStatus(newStatus);
 
         // then
         assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
-        assertThat(orderInfo.getStatusLogs()).hasSize(1);
-
-        OrderStatusLog log = orderInfo.getStatusLogs().get(0);
-        assertThat(log.getPrevStatus()).isEqualTo(OrderStatus.PENDING);
-        assertThat(log.getCurrStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
-        assertThat(log.getReason()).isEqualTo(reason);
     }
 
     @Test
@@ -87,16 +81,10 @@ class OrderInfoTest {
         String cancelReason = "변심";
 
         // when
-        orderInfo.cancel(cancelReason);
+        orderInfo.cancel();
 
         // then
         assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.CANCELLED);
-        assertThat(orderInfo.getStatusLogs()).hasSize(1);
-
-        OrderStatusLog log = orderInfo.getStatusLogs().get(0);
-        assertThat(log.getPrevStatus()).isEqualTo(OrderStatus.PENDING);
-        assertThat(log.getCurrStatus()).isEqualTo(OrderStatus.CANCELLED);
-        assertThat(log.getReason()).isEqualTo(cancelReason);
     }
 
     @Test
@@ -104,10 +92,10 @@ class OrderInfoTest {
     void cancelOrder_Fail_WhenNotPending() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "조리 시작");
+        orderInfo.updateStatus(OrderStatus.IN_PROGRESS);
 
         // when & then
-        assertThatThrownBy(() -> orderInfo.cancel("변심"))
+        assertThatThrownBy(orderInfo::cancel)
                 .isInstanceOf(OrderCancelException.class);
     }
 
@@ -151,7 +139,7 @@ class OrderInfoTest {
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
 
         // when & then
-        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "조리 시작"))
+        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.IN_PROGRESS))
                 .doesNotThrowAnyException();
         assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.IN_PROGRESS);
     }
@@ -163,7 +151,7 @@ class OrderInfoTest {
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
 
         // when & then
-        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.CANCELLED, "고객 요청"))
+        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.CANCELLED))
                 .doesNotThrowAnyException();
         assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
@@ -175,7 +163,7 @@ class OrderInfoTest {
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
 
         // when & then
-        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.DELIVERED, "배송 완료"))
+        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.DELIVERED))
                 .isInstanceOf(OrderStatusTransitionException.class);
     }
 
@@ -184,10 +172,10 @@ class OrderInfoTest {
     void validateStatusTransition_InProgressToOutForDelivery_Success() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "조리 시작");
+        orderInfo.updateStatus(OrderStatus.IN_PROGRESS);
 
         // when & then
-        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.OUT_FOR_DELIVERY, "배송 시작"))
+        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.OUT_FOR_DELIVERY))
                 .doesNotThrowAnyException();
         assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.OUT_FOR_DELIVERY);
     }
@@ -197,10 +185,10 @@ class OrderInfoTest {
     void validateStatusTransition_InProgressToPending_Fail() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "조리 시작");
+        orderInfo.updateStatus(OrderStatus.IN_PROGRESS);
 
         // when & then
-        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.PENDING, "대기로 복귀"))
+        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.PENDING))
                 .isInstanceOf(OrderStatusTransitionException.class);
     }
 
@@ -209,11 +197,11 @@ class OrderInfoTest {
     void validateStatusTransition_OutForDeliveryToDelivered_Success() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "조리 시작");
-        orderInfo.updateStatus(OrderStatus.OUT_FOR_DELIVERY, "배송 시작");
+        orderInfo.updateStatus(OrderStatus.IN_PROGRESS);
+        orderInfo.updateStatus(OrderStatus.OUT_FOR_DELIVERY);
 
         // when & then
-        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.DELIVERED, "배송 완료"))
+        assertThatCode(() -> orderInfo.updateStatus(OrderStatus.DELIVERED))
                 .doesNotThrowAnyException();
         assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.DELIVERED);
     }
@@ -223,12 +211,12 @@ class OrderInfoTest {
     void validateStatusTransition_DeliveredToCancelled_Fail() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "조리 시작");
-        orderInfo.updateStatus(OrderStatus.OUT_FOR_DELIVERY, "배송 시작");
-        orderInfo.updateStatus(OrderStatus.DELIVERED, "배송 완료");
+        orderInfo.updateStatus(OrderStatus.IN_PROGRESS);
+        orderInfo.updateStatus(OrderStatus.OUT_FOR_DELIVERY);
+        orderInfo.updateStatus(OrderStatus.DELIVERED);
 
         // when & then
-        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.CANCELLED, "취소 시도"))
+        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.CANCELLED))
                 .isInstanceOf(OrderStatusTransitionException.class);
     }
 
@@ -237,10 +225,10 @@ class OrderInfoTest {
     void validateStatusTransition_CancelledToInProgress_Fail() {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        orderInfo.updateStatus(OrderStatus.CANCELLED, "고객 취소");
+        orderInfo.updateStatus(OrderStatus.CANCELLED);
 
         // when & then
-        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.IN_PROGRESS, "재시작 시도"))
+        assertThatThrownBy(() -> orderInfo.updateStatus(OrderStatus.IN_PROGRESS))
                 .isInstanceOf(OrderStatusTransitionException.class);
     }
 }
