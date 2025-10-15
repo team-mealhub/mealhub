@@ -1,9 +1,10 @@
 package com.mealhub.backend.order.application.event.handler;
 
 import com.mealhub.backend.cart.application.service.CartItemService;
-import com.mealhub.backend.cart.presentation.dto.request.CartItemUpdateRequest;
+import com.mealhub.backend.order.application.service.OrderStatusLogService;
 import com.mealhub.backend.order.domain.event.OrderCreatedEvent;
 import com.mealhub.backend.order.domain.event.OrderDeletedEvent;
+import com.mealhub.backend.order.domain.event.OrderStatusUpdatedEvent;
 import com.mealhub.backend.payment.application.service.PaymentService;
 import com.mealhub.backend.payment.domain.enums.PaymentStatus;
 import com.mealhub.backend.payment.presentation.dto.request.PaymentLogRequest;
@@ -19,6 +20,7 @@ public class OrderEventListener {
 
     private final CartItemService cartItemService;
     private final PaymentService paymentService;
+    private final OrderStatusLogService orderStatusLogService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -36,6 +38,18 @@ public class OrderEventListener {
 
         PaymentLogRequest.Create paymentLogRequest = createPaymentLogRequest(event);
         paymentService.createPaymentLog(paymentLogRequest);
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleOrderStatusUpdatedEvent(OrderStatusUpdatedEvent event) {
+        orderStatusLogService.createOrderStatusLog(
+                event.getOrderId(),
+                event.getUserId(),
+                event.getPrevStatus(),
+                event.getCurrStatus(),
+                event.getReason()
+        );
     }
 
     private PaymentLogRequest.Create createPaymentLogRequest(OrderCreatedEvent event) {

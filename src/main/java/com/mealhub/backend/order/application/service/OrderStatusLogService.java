@@ -18,7 +18,7 @@ public class OrderStatusLogService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createOrderStatusLog(UUID orderId, Long userId, OrderStatus prevStatus, OrderStatus currStatus, String reason) {
-        var orderStatusLog = OrderStatusLog.createLog(orderId, prevStatus, currStatus, reason);
+        var orderStatusLog = OrderStatusLog.createLog(orderId, userId, prevStatus, currStatus, reason);
         orderStatusLogRepository.save(orderStatusLog);
     }
 }
