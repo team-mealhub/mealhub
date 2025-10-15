@@ -18,4 +18,6 @@ public class ReviewCreateDto {
 
     @Size(max = 500, message = "리뷰는 최대 500자까지 작성할 수 있습니다.")
     private String comment;
+
+    private Boolean ownerOnly;
 }

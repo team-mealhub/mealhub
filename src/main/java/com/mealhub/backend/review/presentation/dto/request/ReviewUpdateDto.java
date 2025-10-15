@@ -26,4 +26,7 @@ public class ReviewUpdateDto {
     @JsonProperty("rv_comment")
     @Size(max = 500)
     private String comment;
+
+    @JsonProperty("owner_only")
+    private Boolean ownerOnly;
 }

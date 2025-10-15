@@ -3,6 +3,7 @@ package com.mealhub.backend.review.presentation.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
+import com.mealhub.backend.user.domain.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,9 @@ public class ReviewResDto {
 
     @JsonProperty("u_id")
     private Long userId;
+
+    @JsonProperty("u_nickname")
+    private String userNickname;
 
     @JsonProperty("rv_star")
     private short star;
@@ -40,16 +44,28 @@ public class ReviewResDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long updatedBy;
 
+    @JsonProperty("owner_only")
+    private boolean ownerOnly;
+
     public static ReviewResDto from(ReviewEntity reviewEntity) {
         return new ReviewResDto(
                 reviewEntity.getId(),
                 reviewEntity.getUser().getId(),
+                getNickName(reviewEntity.getUser()),
                 reviewEntity.getStar(),
                 reviewEntity.getComment(),
                 reviewEntity.getCreatedAt(),
                 reviewEntity.getCreatedBy(),
                 reviewEntity.getUpdatedAt(),
-                reviewEntity.getUpdatedBy()
+                reviewEntity.getUpdatedBy(),
+                reviewEntity.isOwnerOnly()
         );
+    }
+
+    private static String getNickName(User user) {
+        // 닉네임 없으면 userId
+        String nickname = user.getNickname();
+        if (nickname != null && !nickname.isBlank()) return nickname;
+        return user.getUserId();
     }
 }

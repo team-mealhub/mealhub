@@ -42,31 +42,39 @@ public class ReviewEntity extends BaseAuditEntity {
 
     @Column(name = "rv_star", nullable = false)
     @Min(1)
-    @Max(5)                      // 일단, 별점 범위(1~5)로 설정
+    @Max(5)
     private short star;
 
     @Column(name = "rv_comment", length = 500, nullable = false)
     @Size(max = 500)
     private String comment = "";
 
-    private ReviewEntity(User user, RestaurantEntity restaurant, short star, String comment) {
+    @Column(name = "owner_only", nullable = false)
+    private boolean ownerOnly = false;
+
+    private ReviewEntity(User user, RestaurantEntity restaurant, short star, String comment, boolean ownerOnly) {
         this.user = user;
         this.restaurant = restaurant;
         this.star = star;
         this.comment = (comment == null ? "" : comment);
+        this.ownerOnly = ownerOnly;
     }
 
-    public static ReviewEntity from(User user, RestaurantEntity restaurant, short star, String comment) {
+    public static ReviewEntity from(User user, RestaurantEntity restaurant, short star, String comment, Boolean ownerOnly) {
         String safeComment = (comment == null) ? "" : comment.trim(); // null -> "", 공백 제거
-        return new ReviewEntity(user, restaurant, star, safeComment);
+        boolean safeOwnerOnly = Boolean.TRUE.equals(ownerOnly); // false 또는 null인 경우 -> false로 저장
+        return new ReviewEntity(user, restaurant, star, safeComment, safeOwnerOnly);
     }
 
-    public void update(Short star, String comment) {
+    public void update(Short star, String comment, Boolean ownerOnly) {
         if (star != null) {
             this.star = star;
         }
         if (comment != null) {
             this.comment = comment.trim();
+        }
+        if (ownerOnly != null) {
+            this.ownerOnly = ownerOnly;
         }
     }
 
