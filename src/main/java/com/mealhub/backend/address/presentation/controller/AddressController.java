@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,7 +30,6 @@ public class AddressController {
     @Operation(summary = "주소 등록", description = "새로운 주소 등록")
     @PostMapping
     public ResponseEntity<AddressResponse> createAddress(@AuthenticationPrincipal UserDetailsImpl userDetails, @Valid @RequestBody AddressRequest addressRequest) {
-        // 현재는 임시 mock 사용
         User currentUser = userDetails.toUser();
         AddressResponse addressResponse = addressService.create(currentUser, addressRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(addressResponse);
@@ -42,11 +43,11 @@ public class AddressController {
         return ResponseEntity.ok(addressResponse);
     }
 
-    @Operation(summary = "주소 전체 조회", description = "검색어를 포함해 전체 주소 조회")
+    @Operation(summary = "주소 전체 조회", description = "검색어를 포함해 전체 주소 페이징 조회")
     @GetMapping
-    public ResponseEntity<List<AddressResponse>> getAllAddresses(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam(required = false) String keyword) {
+    public ResponseEntity<Page<AddressResponse>> getAllAddresses(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam(required = false) String keyword, Pageable pageable) {
         User currentUser = userDetails.toUser();
-        List<AddressResponse> addressResponses = addressService.getAllAddresses(currentUser, keyword);
+        Page<AddressResponse> addressResponses = addressService.getAllAddresses(currentUser, keyword, pageable);
         return ResponseEntity.ok(addressResponses);
     }
 
