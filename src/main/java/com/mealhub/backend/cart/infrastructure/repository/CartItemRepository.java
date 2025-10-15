@@ -18,7 +18,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
         SELECT c
         FROM CartItem c
         WHERE c.user.id = :userId
-            AND c.product.pId = :productId
+            AND c.product.id = :productId
             AND c.status = :status
             AND c.buying = :buying
             AND c.deletedAt IS NULL

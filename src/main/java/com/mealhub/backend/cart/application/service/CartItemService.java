@@ -41,7 +41,7 @@ public class CartItemService {
         CartItem cartItem;
 
         if (request.getStatus() == CartItemStatus.CART && !request.isBuying()) {
-            Optional<CartItem> existingCartItem = cartItemRepository.findActiveCartItem(user.getId(), product.getPId(), CartItemStatus.CART, false);
+            Optional<CartItem> existingCartItem = cartItemRepository.findActiveCartItem(user.getId(), product.getId(), CartItemStatus.CART, false);
 
             if (existingCartItem.isPresent()) {
                 cartItem = existingCartItem.get();
