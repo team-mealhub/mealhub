@@ -221,6 +221,8 @@ public class OrderService {
         validateCustomerOwnership(orderInfo, currentUserId);
 
         orderInfo.cancel(reason);
+
+        orderEventPublisher.publish(new OrderDeletedEvent(orderId, currentUserId, orderInfo.getTotal()));
         return OrderResponse.from(orderInfo);
     }
 
@@ -233,7 +235,7 @@ public class OrderService {
         // MANAGER는 모든 주문 삭제 가능
         if (UserRole.ROLE_MANAGER.equals(userRole)) {
             orderInfo.delete(deletedBy);
-            orderEventPublisher.publish(new OrderDeletedEvent(orderId, deletedBy, orderInfo.getTotal()));
+            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal()));
             return;
         }
 
@@ -241,7 +243,7 @@ public class OrderService {
         if (UserRole.ROLE_OWNER.equals(userRole)) {
             validateOwnerRestaurant(orderInfo, deletedBy);
             orderInfo.delete(deletedBy);
-            orderEventPublisher.publish(new OrderDeletedEvent(orderId, deletedBy, orderInfo.getTotal()));
+            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal()));
             return;
         }
 
