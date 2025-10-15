@@ -11,6 +11,7 @@ import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.domain.event.OrderCreatedEvent;
 import com.mealhub.backend.order.domain.event.OrderDeletedEvent;
+import com.mealhub.backend.order.domain.event.OrderStatusUpdatedEvent;
 import com.mealhub.backend.order.domain.exception.EmptyCartItemException;
 import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
@@ -207,7 +208,12 @@ public class OrderService {
         // OWNER는 본인 가게 주문만 상태 변경 가능
         validateOwnerRestaurant(orderInfo, currentUserId);
 
-        orderInfo.updateStatus(request.getOStatus(), request.getReason());
+        OrderStatus prevStatus = orderInfo.getStatus();
+        OrderStatus currStatus = request.getOStatus();
+
+        orderInfo.updateStatus(currStatus, request.getReason());
+
+        orderEventPublisher.publish(new OrderStatusUpdatedEvent(orderId, currentUserId, prevStatus, currStatus, request.getReason()));
         return OrderResponse.from(orderInfo);
     }
 
