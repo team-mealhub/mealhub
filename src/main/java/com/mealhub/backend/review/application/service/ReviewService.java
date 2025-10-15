@@ -77,12 +77,17 @@ public class ReviewService {
             throw new ReviewOnlyAfterDeliveredException();
         }
 
+        // 주문 중복 리뷰 방지 (미삭제 리뷰 존재 -> 충돌)
+        if (reviewRepository.existsByOrderIdAndDeletedAtIsNull(order.getOInfoId())) {
+            throw new ReviewAlreadyExistsForOrderException();
+        }
+
         // 주문에 저장된 가게로 매핑
         var restaurant = restaurantRepository.findById(order.getRestaurantId())
                 .orElseThrow(RestaurantNotFoundException::new);
 
         ReviewEntity savedReviewEntity = reviewRepository.save(
-                ReviewEntity.from(user, restaurant, createDto.getStar(), createDto.getComment(), createDto.getOwnerOnly())
+                ReviewEntity.from(user, restaurant, order.getOInfoId(), createDto.getStar(), createDto.getComment(), createDto.getOwnerOnly())
         );
 
         return ReviewResDto.from(savedReviewEntity);
