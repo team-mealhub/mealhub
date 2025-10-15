@@ -45,4 +45,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
             AND c.deletedAt IS NULL
         """)
     List<CartItem> findAllWithProductByIdIn(@Param("cartItemIds") List<UUID> cartItemIds);
+
+    List<CartItem> findAllByUserIdAndBuyingTrueAndDeletedAtIsNull(Long userId);
 }

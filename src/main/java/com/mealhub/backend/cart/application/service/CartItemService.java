@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -79,20 +78,27 @@ public class CartItemService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<CartItemResponse> updateCartItemsBuying(Long userId, CartItemUpdateRequest.Buying request) {
-        List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());
-        boolean buying = request.isBuying();
+    public void updateCartItemsBuyingTrue(Long userId, List<UUID> cartItemIds) {
+        List<CartItem> cartItems = cartItemRepository.findAllById(cartItemIds);
 
         cartItems.forEach(cartItem -> {
             cartItem.validateOwnership(userId);
-            if (!buying && cartItem.getStatus() == CartItemStatus.DIRECT) {
-                cartItem.delete(userId);
+            cartItem.updateBuying(true);
+        });
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateCartItemsBuyingFalse(Long userId) {
+        List<CartItem> cartItems = cartItemRepository.findAllByUserIdAndBuyingTrueAndDeletedAtIsNull(userId);
+
+        cartItems.forEach(cartItem -> {
+            cartItem.validateOwnership(userId);
+            if (cartItem.getStatus() == CartItemStatus.CART) {
+                cartItem.updateBuying(false);
             } else {
-                cartItem.updateBuying(buying);
+                cartItem.delete(userId);
             }
         });
-
-        return cartItems.stream().map(CartItemResponse::new).toList();
     }
 
     @Transactional
