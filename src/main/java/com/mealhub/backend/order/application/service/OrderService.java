@@ -5,9 +5,11 @@ import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
 import com.mealhub.backend.cart.domain.entity.CartItem;
 import com.mealhub.backend.cart.domain.exception.CartItemForbiddenException;
 import com.mealhub.backend.cart.infrastructure.repository.CartItemRepository;
+import com.mealhub.backend.order.application.event.publisher.OrderEventPublisher;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.entity.OrderItem;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
+import com.mealhub.backend.order.domain.event.OrderCreatedEvent;
 import com.mealhub.backend.order.domain.exception.EmptyCartItemException;
 import com.mealhub.backend.order.domain.exception.OrderForbiddenException;
 import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
@@ -39,6 +41,7 @@ public class OrderService {
     private final RestaurantRepository restaurantRepository;
     private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
+    private final OrderEventPublisher orderEventPublisher;
 
     // 권한 검증: CUSTOMER가 본인 주문인지 확인
     private void validateCustomerOwnership(OrderInfo orderInfo, Long currentUserId) {
@@ -103,6 +106,10 @@ public class OrderService {
         }
 
         OrderInfo savedOrder = orderInfoRepository.save(orderInfo);
+
+        List<UUID> cartItemIds = cartItems.stream().map(CartItem::getId).toList();
+        orderEventPublisher.publish(new OrderCreatedEvent(savedOrder.getOInfoId(), userId, cartItemIds, savedOrder.getTotal()));
+
         return OrderResponse.from(savedOrder);
     }
 
