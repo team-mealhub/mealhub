@@ -45,9 +45,6 @@ public class OrderInfo extends BaseAuditEntity {
     @OneToMany(mappedBy = "orderInfo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
-    @OneToMany(mappedBy = "orderInfo", cascade = CascadeType.ALL)
-    private List<OrderStatusLog> statusLogs = new ArrayList<>();
-
     // 정적 팩토리 메서드
     public static OrderInfo createOrder(Long userId, UUID restaurantId, UUID addressId, String requirements) {
         OrderInfo orderInfo = new OrderInfo();
@@ -74,15 +71,9 @@ public class OrderInfo extends BaseAuditEntity {
                 .sum();
     }
 
-    public void updateStatus(OrderStatus newStatus, String reason) {
+    public void updateStatus(OrderStatus newStatus) {
         validateStatusTransition(this.status, newStatus);
-
-        OrderStatus oldStatus = this.status;
         this.status = newStatus;
-
-        // 상태 로그 생성
-        OrderStatusLog log = OrderStatusLog.createLog(this, oldStatus, newStatus, reason);
-        this.statusLogs.add(log);
     }
 
     /**
@@ -121,11 +112,11 @@ public class OrderInfo extends BaseAuditEntity {
         }
     }
 
-    public void cancel(String reason) {
+    public void cancel() {
         if (this.status != OrderStatus.PENDING) {
             throw new OrderCancelException("Order.Cancel.OnlyPending");
         }
-        updateStatus(OrderStatus.CANCELLED, reason);
+        updateStatus(OrderStatus.CANCELLED);
     }
 
     public void delete(Long deletedBy) {
