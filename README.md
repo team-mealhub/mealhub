@@ -17,7 +17,7 @@ Mealhub는 음식점 검색부터 주문·결제, 그리고 신뢰 가능한 리
 | [<img src="https://github.com/rnignon.png" width="100" style="border-radius:50%"/>](https://github.com/rnignon) | [<img src="https://github.com/hellonaeunkim.png" width="100" style="border-radius:50%"/>](https://github.com/hellonaeunkim) | [<img src="https://github.com/GoodNyong.png" width="100" style="border-radius:50%"/>](https://github.com/GoodNyong) | [<img src="https://github.com/Yu-Jin9.png" width="100" style="border-radius:50%"/>](https://github.com/Yu-Jin9) | [<img src="https://github.com/jake8771.png" width="100" style="border-radius:50%"/>](https://github.com/jake8771) | [<img src="https://github.com/Janghyeon2412.png" width="100" style="border-radius:50%"/>](https://github.com/Janghyeon2412) |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | **[김민형](https://github.com/rnignon)** | **[김나은](https://github.com/hellonaeunkim)** | **[박근용](https://github.com/GoodNyong)** | **[이유진](https://github.com/Yu-Jin9)** | **[이호준](https://github.com/jake8771)** | **[장가현](https://github.com/Janghyeon2412)** |
-| User, Auth, Cart, PaymentLog | Restaurant, RestauCategory AI, CI | Order | Review | Product | Address |
+| User, Auth, Cart, PaymentLog | Restaurant, <br /> RestauCategory, <br /> AI, CI | Order | Review | Product | Address |
 
 <br />
 
@@ -35,6 +35,14 @@ Mealhub는 음식점 검색부터 주문·결제, 그리고 신뢰 가능한 리
 <hr />
 
 ### 가게
+- 가게
+  - 가게 등록, 수정, 삭제 기능 구현
+- 가게 카테고리
+  - 한식, 중식, 분식, 치킨, 피자 등 음식점 카테고리 관리 기능 구현
+  - 카테고리 추가 및 수정이 가능한 확장성 있는 데이터 구조 설계
+- AI
+  - 상품 등록 시 Gemini API를 활용해 상품 설명을 자동 생성 기능 구현
+  - AI 요청 및 응답 내역을 별도의 AI 로그 테이블에 저장하도록 설계
 
 <hr />
 
