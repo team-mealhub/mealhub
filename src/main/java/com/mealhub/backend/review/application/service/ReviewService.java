@@ -1,13 +1,10 @@
 package com.mealhub.backend.review.application.service;
 
-import com.mealhub.backend.global.domain.exception.ForbiddenException;
-import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.global.domain.exception.UnAuthorizedException;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import com.mealhub.backend.order.domain.exception.OrderNotFoundException;
 import com.mealhub.backend.order.infrastructure.repository.OrderInfoRepository;
-import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantRepository;
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
 import com.mealhub.backend.review.domain.exception.*;
@@ -25,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.mealhub.backend.user.domain.enums.UserRole;
-
-import static org.springframework.data.domain.Sort.Direction.*;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -113,32 +108,17 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ReviewListItemDto> getListReviews(UUID restaurantId, String sort, Pageable pageable, Long userId, UserRole role) {
-
-        Sort baseSort = switch ((sort == null || sort.isBlank()) ? "latest" : sort) {
-            case "rating_desc" -> Sort.by(DESC, "star");
-            case "rating_asc" -> Sort.by(ASC, "star");
-            default -> Sort.by(DESC, "createdAt");
-        };
-
-        Sort finalSort = pageable.getSort().isSorted() ? pageable.getSort() : baseSort;
-        PageRequest pageReq = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), finalSort);
-
-        // 매니저 or 해당 가게 사장 -> 전체 (ownerOnly=true 포함)
+    public Page<ReviewListItemDto> getListReviews(UUID restaurantId, PageRequest pageReq, Long userId, UserRole role) {
         if (role == UserRole.ROLE_MANAGER || isRestaurantOwner(userId, restaurantId)) {
             return reviewRepository
                     .findByRestaurant_RestaurantIdAndDeletedAtIsNull(restaurantId, pageReq)
                     .map(ReviewListItemDto::from);
         }
-
-        // 비로그인 -> 공개만
         if (userId == null) {
             return reviewRepository
                     .findByRestaurant_RestaurantIdAndDeletedAtIsNullAndOwnerOnlyFalse(restaurantId, pageReq)
                     .map(ReviewListItemDto::from);
         }
-
-        // 일반 로그인 -> 공개 + "내가 쓴 ownerOnly"
         return reviewRepository
                 .findVisibleForUser(restaurantId, userId, pageReq)
                 .map(ReviewListItemDto::from);

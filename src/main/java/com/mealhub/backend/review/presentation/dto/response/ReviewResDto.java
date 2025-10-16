@@ -1,5 +1,6 @@
 package com.mealhub.backend.review.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
@@ -37,6 +38,7 @@ public class ReviewResDto {
     private String comment;
 
     @JsonProperty("created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Schema(description = "등록 시각 (ISO-8601)", example = "2025-10-01T12:34:56")
     private LocalDateTime createdAt;
 
@@ -46,6 +48,7 @@ public class ReviewResDto {
 
     @JsonProperty("updated_at")
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Schema(description = "수정 시각 (ISO-8601)", example = "2025-10-02T08:10:00")
     private LocalDateTime updatedAt;
 

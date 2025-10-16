@@ -19,8 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +31,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/review")
-@Tag(name = "Review", description = "리뷰 API")
+@Tag(name = "Review", description = "리뷰 도메인 API - 리뷰 생성, 리뷰 단건 조회, 리뷰 리스트 조회, 리뷰 수정, 리뷰 삭제")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -71,22 +71,36 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReview(reviewId, userId, role));
     }
 
+    @GetMapping
     @Operation(
             summary = "가게 리뷰 리스트 조회",
-            description = "가게에 대한 모든 리뷰 조회. 정렬과 페이지네이션 지원. sort: latest | ratingDesc | ratingAsc"
+            description = "가게에 대한 모든 리뷰 조회. 정렬과 페이지네이션 지원. sortBy: createdAt | star, isAsc: true|false (page는 1-base)"
     )
     @ApiResponse(responseCode = "200", description = "리뷰 리스트 조회 성공")
-    @GetMapping
     public ResponseEntity<PageResult<ReviewListItemDto>> getListReviews(
             @RequestParam("r_id") UUID restaurantId,
-            @RequestParam(name = "sort", defaultValue = "latest") String sort,
-            @PageableDefault(size = 10) Pageable pageable, // size=10 기본
+            @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy, // createdAt | star
+            @RequestParam(name = "isAsc", defaultValue = "false") boolean isAsc,
+            @RequestParam(name = "page", defaultValue = "1") int page,  // 1-base로 받음
+            @RequestParam(name = "size", defaultValue = "10") int size,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
     ) {
         Long userId = (userDetailsImpl == null ? null : userDetailsImpl.getId());
         UserRole role = (userDetailsImpl == null ? null : userDetailsImpl.getRole());
-        var page = reviewService.getListReviews(restaurantId, sort, pageable, userId, role);
-        return ResponseEntity.ok(PageResult.of(page));
+
+        // sort 화이트리스트(오타 방지)
+        String key = "star".equalsIgnoreCase(sortBy) ? "star" : "createdAt";
+        Sort dir = isAsc ? Sort.by(Sort.Direction.ASC, key) : Sort.by(Sort.Direction.DESC, key);
+        dir = dir.and(Sort.by(Sort.Direction.DESC, "id")); // 안정 정렬
+
+        // 3) 페이지네이션: 1-base -> 0-base 보정 + size 범위 가드(1~100)
+        int safePage = Math.max(page - 1, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+
+        PageRequest pageReq = PageRequest.of(safePage, safeSize, dir);
+
+        var pageResult = reviewService.getListReviews(restaurantId, pageReq, userId, role);
+        return ResponseEntity.ok(PageResult.of(pageResult));
     }
 
     @Operation(summary = "리뷰 수정", description = "별점/내용 리뷰 부분 수정")
