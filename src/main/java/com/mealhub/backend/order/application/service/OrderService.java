@@ -84,6 +84,7 @@ public class OrderService {
         }
 
         validateCartItemsOwnership(cartItems, userId);
+        validateCartItemsRestaurant(cartItems, request.getRId());
 
         // 4. 주문 정보 생성
         OrderInfo orderInfo = OrderInfo.createOrder(
@@ -110,7 +111,7 @@ public class OrderService {
         OrderInfo savedOrder = orderInfoRepository.save(orderInfo);
 
         List<UUID> cartItemIds = cartItems.stream().map(CartItem::getId).toList();
-        orderEventPublisher.publish(new OrderCreatedEvent(savedOrder.getOInfoId(), userId, cartItemIds, savedOrder.getTotal()));
+        orderEventPublisher.publish(new OrderCreatedEvent(savedOrder.getOrderInfoId(), userId, cartItemIds, savedOrder.getTotal()));
 
         return OrderResponse.from(savedOrder);
     }
@@ -244,7 +245,7 @@ public class OrderService {
         // MANAGER는 모든 주문 삭제 가능
         if (UserRole.ROLE_MANAGER.equals(userRole)) {
             orderInfo.delete(deletedBy);
-            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal(), prevStatus, "관리자 삭제"));
+            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOrderInfoId(), orderInfo.getUserId(), orderInfo.getTotal(), prevStatus, "관리자 삭제"));
             return;
         }
 
@@ -252,7 +253,7 @@ public class OrderService {
         if (UserRole.ROLE_OWNER.equals(userRole)) {
             validateOwnerRestaurant(orderInfo, deletedBy);
             orderInfo.delete(deletedBy);
-            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOInfoId(), orderInfo.getUserId(), orderInfo.getTotal(), prevStatus, "점주 삭제"));
+            orderEventPublisher.publish(new OrderDeletedEvent(orderInfo.getOrderInfoId(), orderInfo.getUserId(), orderInfo.getTotal(), prevStatus, "점주 삭제"));
             return;
         }
 
@@ -264,6 +265,15 @@ public class OrderService {
             if (!cartItem.getUser().getId().equals(userId)) {
                 throw new CartItemForbiddenException();
             }
+        }
+    }
+
+    private void validateCartItemsRestaurant(List<CartItem> cartItems, UUID requestedRestaurantId) {
+        boolean allFromSameRestaurant = cartItems.stream()
+                .allMatch(item -> item.getProduct().getRestaurant().getRestaurantId().equals(requestedRestaurantId));
+
+        if (!allFromSameRestaurant) {
+            throw new OrderForbiddenException("Order.DifferentRestaurants");
         }
     }
 }

@@ -26,7 +26,7 @@ class OrderInfoTest {
         OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, requirements);
 
         // then
-        assertThat(orderInfo.getOInfoId()).isNotNull();
+        assertThat(orderInfo.getOrderInfoId()).isNotNull();
         assertThat(orderInfo.getUserId()).isEqualTo(userId);
         assertThat(orderInfo.getRestaurantId()).isEqualTo(restaurantId);
         assertThat(orderInfo.getAddressId()).isEqualTo(addressId);
@@ -75,10 +75,14 @@ class OrderInfoTest {
 
     @Test
     @DisplayName("주문 취소 - 성공 (PENDING 상태)")
-    void cancelOrder_Success_WhenPending() {
+    void cancelOrder_Success_WhenPending() throws Exception {
         // given
         OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
-        String cancelReason = "변심";
+
+        // Reflection을 사용하여 createdAt 설정 (JPA Auditing 대체)
+        java.lang.reflect.Field createdAtField = orderInfo.getClass().getSuperclass().getSuperclass().getDeclaredField("createdAt");
+        createdAtField.setAccessible(true);
+        createdAtField.set(orderInfo, java.time.LocalDateTime.now());
 
         // when
         orderInfo.cancel();
@@ -96,7 +100,43 @@ class OrderInfoTest {
 
         // when & then
         assertThatThrownBy(orderInfo::cancel)
-                .isInstanceOf(OrderCancelException.class);
+                .isInstanceOf(OrderCancelException.class)
+                .hasMessageContaining("Order.Cancel.OnlyPending");
+    }
+
+    @Test
+    @DisplayName("주문 취소 - 실패 (5분 경과)")
+    void cancelOrder_Fail_WhenTimeExpired() throws Exception {
+        // given
+        OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
+
+        // Reflection을 사용하여 createdAt을 6분 전으로 설정
+        java.lang.reflect.Field createdAtField = orderInfo.getClass().getSuperclass().getSuperclass().getDeclaredField("createdAt");
+        createdAtField.setAccessible(true);
+        createdAtField.set(orderInfo, java.time.LocalDateTime.now().minusMinutes(6));
+
+        // when & then
+        assertThatThrownBy(orderInfo::cancel)
+                .isInstanceOf(OrderCancelException.class)
+                .hasMessageContaining("Order.Cancel.TimeExpired");
+    }
+
+    @Test
+    @DisplayName("주문 취소 - 성공 (5분 이내)")
+    void cancelOrder_Success_WithinFiveMinutes() throws Exception {
+        // given
+        OrderInfo orderInfo = OrderInfo.createOrder(1L, UUID.randomUUID(), UUID.randomUUID(), null);
+
+        // Reflection을 사용하여 createdAt을 4분 전으로 설정
+        java.lang.reflect.Field createdAtField = orderInfo.getClass().getSuperclass().getSuperclass().getDeclaredField("createdAt");
+        createdAtField.setAccessible(true);
+        createdAtField.set(orderInfo, java.time.LocalDateTime.now().minusMinutes(4));
+
+        // when
+        orderInfo.cancel();
+
+        // then
+        assertThat(orderInfo.getStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
 
     @Test

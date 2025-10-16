@@ -17,7 +17,7 @@ public class OrderItem extends BaseAuditEntity {
 
     @Id
     @Column(name = "o_item_id", columnDefinition = "UUID")
-    private UUID oItemId;
+    private UUID orderItemId;
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,7 +43,7 @@ public class OrderItem extends BaseAuditEntity {
         }
 
         OrderItem orderItem = new OrderItem();
-        orderItem.oItemId = UUID.randomUUID();
+        orderItem.orderItemId = UUID.randomUUID();
         orderItem.productId = productId;
         orderItem.product = product;
         orderItem.price = price;

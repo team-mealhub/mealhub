@@ -80,6 +80,7 @@ class OrderServiceTest {
 
         // Restaurant Mock 설정
         RestaurantEntity restaurant = mock(RestaurantEntity.class);
+        when(restaurant.getRestaurantId()).thenReturn(restaurantId);
         when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurant));
 
         // Address Mock 설정 (본인 주소)
@@ -95,6 +96,7 @@ class OrderServiceTest {
         when(product.getId()).thenReturn(productId);
         when(product.getName()).thenReturn("치킨");
         when(product.getPrice()).thenReturn(20000L);
+        when(product.getRestaurant()).thenReturn(restaurant); // Restaurant 설정 추가
 
         // CartItem Mock 설정
         CartItem cartItem = mock(CartItem.class);
@@ -112,7 +114,7 @@ class OrderServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getOInfoId()).isEqualTo(orderInfo.getOInfoId());
+        assertThat(response.getOrderInfoId()).isEqualTo(orderInfo.getOrderInfoId());
         assertThat(response.getStatus()).isEqualTo(OrderStatus.PENDING);
 
         verify(cartItemRepository, times(1)).findAllWithProductByIdIn(any());
@@ -496,5 +498,63 @@ class OrderServiceTest {
         assertThatThrownBy(() -> orderService.deleteOrder(orderId, deletedBy, userRole))
                 .isInstanceOf(OrderForbiddenException.class)
                 ;
+    }
+
+    @Test
+    @DisplayName("주문 생성 - 실패 (서로 다른 레스토랑의 상품)")
+    void createOrder_Fail_DifferentRestaurants() {
+        // given
+        Long userId = 1L;
+        UUID restaurant1Id = UUID.randomUUID();
+        UUID restaurant2Id = UUID.randomUUID();
+        UUID addressId = UUID.randomUUID();
+        UUID cartItem1Id = UUID.randomUUID();
+        UUID cartItem2Id = UUID.randomUUID();
+        List<UUID> cartItemIds = List.of(cartItem1Id, cartItem2Id);
+
+        OrderCreateRequest request = new OrderCreateRequest();
+        request.setRId(restaurant1Id); // 주문 요청은 restaurant1으로
+        request.setAId(addressId);
+        request.setCartItemIds(cartItemIds);
+
+        // Restaurant Mock 설정
+        RestaurantEntity restaurant1 = mock(RestaurantEntity.class);
+        when(restaurant1.getRestaurantId()).thenReturn(restaurant1Id);
+        when(restaurantRepository.findById(restaurant1Id)).thenReturn(Optional.of(restaurant1));
+
+        // Address Mock 설정 (본인 주소)
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(userId);
+
+        Address address = mock(Address.class);
+        when(address.getUser()).thenReturn(user);
+        when(addressRepository.findById(addressId)).thenReturn(Optional.of(address));
+
+        // Product Mock 설정 (서로 다른 레스토랑)
+        RestaurantEntity restaurant2 = mock(RestaurantEntity.class);
+        when(restaurant2.getRestaurantId()).thenReturn(restaurant2Id);
+
+        Product product1 = mock(Product.class);
+        when(product1.getRestaurant()).thenReturn(restaurant1); // restaurant1 소속
+
+        Product product2 = mock(Product.class);
+        when(product2.getRestaurant()).thenReturn(restaurant2); // restaurant2 소속 (다른 레스토랑!)
+
+        // CartItem Mock 설정
+        CartItem cartItem1 = mock(CartItem.class);
+        when(cartItem1.getProduct()).thenReturn(product1);
+        when(cartItem1.getUser()).thenReturn(user);
+
+        CartItem cartItem2 = mock(CartItem.class);
+        when(cartItem2.getProduct()).thenReturn(product2);
+        when(cartItem2.getUser()).thenReturn(user);
+
+        when(cartItemRepository.findAllWithProductByIdIn(cartItemIds))
+                .thenReturn(List.of(cartItem1, cartItem2));
+
+        // when & then
+        assertThatThrownBy(() -> orderService.createOrder(userId, request))
+                .isInstanceOf(OrderForbiddenException.class)
+                .hasMessageContaining("Order.DifferentRestaurants");
     }
 }

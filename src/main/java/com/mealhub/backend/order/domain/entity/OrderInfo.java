@@ -21,7 +21,7 @@ public class OrderInfo extends BaseAuditEntity {
 
     @Id
     @Column(name = "o_info_id", columnDefinition = "UUID")
-    private UUID oInfoId;
+    private UUID orderInfoId;
 
     @Column(name = "u_id", nullable = false)
     private Long userId;
@@ -48,7 +48,7 @@ public class OrderInfo extends BaseAuditEntity {
     // 정적 팩토리 메서드
     public static OrderInfo createOrder(Long userId, UUID restaurantId, UUID addressId, String requirements) {
         OrderInfo orderInfo = new OrderInfo();
-        orderInfo.oInfoId = UUID.randomUUID();
+        orderInfo.orderInfoId = UUID.randomUUID();
         orderInfo.userId = userId;
         orderInfo.restaurantId = restaurantId;
         orderInfo.addressId = addressId;
@@ -116,6 +116,12 @@ public class OrderInfo extends BaseAuditEntity {
         if (this.status != OrderStatus.PENDING) {
             throw new OrderCancelException("Order.Cancel.OnlyPending");
         }
+
+        // 주문 생성 후 5분 이내에만 취소 가능
+        if (java.time.Duration.between(this.getCreatedAt(), java.time.LocalDateTime.now()).toMinutes() > 5) {
+            throw new OrderCancelException("Order.Cancel.TimeExpired");
+        }
+
         updateStatus(OrderStatus.CANCELLED);
     }
 
