@@ -36,7 +36,7 @@ public class RestaurantCategoryService {
                 });
     }
 
-    // 가게 분류 추가
+    // 가게 분류 추가 (MANAGER 권한 필요)
     @Transactional
     public RestaurantCategoryResponse createRestaurantCategory(
             RestaurantCategoryRequest restaurantCategoryRequest
@@ -65,7 +65,7 @@ public class RestaurantCategoryService {
         return RestaurantCategoryResponse.fromList(categories);
     }
 
-    // 가게 분류 수정
+    // 가게 분류 수정 (MANAGER 권한 필요)
     @Transactional
     public RestaurantCategoryResponse updateRestaurantCategory(
             RestaurantCategoryPatchRequest restaurantCategoryPatchRequest,
@@ -84,7 +84,7 @@ public class RestaurantCategoryService {
         return RestaurantCategoryResponse.from(category);
     }
 
-    // 가게 분류 삭제
+    // 가게 분류 삭제 (MANAGER 권한 필요)
     @Transactional
     public void deleteRestaurantCategory(UUID categoryId) {
 

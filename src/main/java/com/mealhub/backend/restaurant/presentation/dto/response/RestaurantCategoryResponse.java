@@ -2,6 +2,7 @@ package com.mealhub.backend.restaurant.presentation.dto.response;
 
 import com.mealhub.backend.restaurant.domain.entity.RestaurantCategoryEntity;
 import java.util.List;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,8 @@ import lombok.Getter;
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class RestaurantCategoryResponse {
+
+    private final UUID categoryId;
 
     private final String category;
 
