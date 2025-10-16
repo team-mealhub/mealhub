@@ -39,7 +39,6 @@ public class RestaurantController {
             @Valid @RequestBody RestaurantRequest restaurantRequest,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
     ) {
-        UserRole role = userDetailsImpl.getRole();
         Long userId = userDetailsImpl.getId();
 
         return restaurantService.createRestaurant(restaurantRequest, userId);
@@ -101,7 +100,6 @@ public class RestaurantController {
             @Valid @RequestBody RestaurantRequest restaurantRequest,
             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
     ) {
-        UserRole role = userDetailsImpl.getRole();
         Long userId = userDetailsImpl.getId();
 
         return restaurantService.changeRestaurantStatus(restaurantId, restaurantRequest, userId);
