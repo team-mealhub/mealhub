@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 public class RestaurantCategoryPatchRequest {
 
     @NotBlank
-    @Size(max = 20)
+    @Size(max = 20, message = "카테고리명은 20자 이내로 입력해주세요.")
     private String category;
 
-    @Size(max = 20)
+    @Size(max = 20, message = "카테고리명은 20자 이내로 입력해주세요.")
     private String updatedCategory;
 }
