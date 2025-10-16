@@ -8,8 +8,8 @@ import com.mealhub.backend.cart.presentation.dto.request.CartItemCreateRequest;
 import com.mealhub.backend.cart.presentation.dto.request.CartItemUpdateRequest;
 import com.mealhub.backend.cart.presentation.dto.response.CartItemResponse;
 import com.mealhub.backend.cart.presentation.dto.response.CartResponse;
-import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.product.domain.entity.Product;
+import com.mealhub.backend.product.domain.exception.ProductNotFoundException;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +34,8 @@ public class CartItemService {
 
     @Transactional
     public CartItemResponse addCartItem(User user, CartItemCreateRequest request) {
-        // TODO: Product 예외로 변경
         Product product = productRepository.findById(request.getProductId())
-                        .orElseThrow(NotFoundException::new);
+                .orElseThrow(ProductNotFoundException::new);
 
         CartItem cartItem;
 
