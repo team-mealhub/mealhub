@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -29,6 +31,8 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public PageResult<PaymentLogResponse> getPaymentLogs(PaymentLogRequest.Search request, int page, int size) {
+        size = List.of(10, 30, 50).contains(size) ? size : 10;
+
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<PaymentLog> paymentLogs = paymentLogRepository.findAll(buildSearchConditions(request), pageRequest);
 
