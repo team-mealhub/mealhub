@@ -31,7 +31,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/review")
-@Tag(name = "Review", description = "리뷰 도메인 API - 리뷰 생성, 리뷰 단건 조회, 리뷰 리스트 조회, 리뷰 수정, 리뷰 삭제")
+@Tag(name = "Review", description = "리뷰 도메인 API - 리뷰 생성, 리뷰 단건 조회, 리뷰 리스트 조회, 리뷰 수정, 리뷰 삭제, 내가 작성한 리뷰 목록 조회")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -75,7 +75,7 @@ public class ReviewController {
     @Operation(
             summary = "가게 리뷰 리스트 조회",
             description = """
-    가게에 대한 리뷰 목록을 반환합니다. (page는 1-base)
+    가게에 대한 리뷰 목록을 반환. (page는 1-base)
     정렬: sortBy=createdAt|star, isAsc=true|false
     최신순: sortBy=createdAt&isAsc=false
     별점 높은순: sortBy=star&isAsc=false
@@ -126,7 +126,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.updateReview(reviewUpdateDto, userId, role));
     }
 
-    @Operation(summary = "리뷰 삭제(Soft)", description = "리뷰를 소프트 삭제합니다.")
+    @Operation(summary = "리뷰 삭제(Soft)", description = "리뷰를 소프트 삭제")
     @ApiResponse(responseCode = "200", description = "리뷰 삭제 성공")
     @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
@@ -142,9 +142,9 @@ public class ReviewController {
 
     @GetMapping("/my")
     @Operation(
-            summary = "내가 작성한 리뷰 목록",
+            summary = "내가 작성한 리뷰 목록 조회",
             description = """
-    로그인 사용자가 작성한 리뷰 목록을 반환합니다. (page는 1-base)
+    로그인 사용자가 작성한 리뷰 목록을 반환. (page는 1-base)
     정렬: sortBy=createdAt|star, isAsc=true|false
     최신순: sortBy=createdAt&isAsc=false
     별점 높은순: sortBy=star&isAsc=false
