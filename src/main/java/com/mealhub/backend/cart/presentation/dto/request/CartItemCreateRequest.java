@@ -33,8 +33,4 @@ public class CartItemCreateRequest {
     @NotNull
     @Schema(description = "장바구니 상태", example = "CART")
     private CartItemStatus status;
-
-    @JsonProperty("ct_buying")
-    @Schema(description = "장바구니 구매 상태", example = "false")
-    private boolean buying;
 }
