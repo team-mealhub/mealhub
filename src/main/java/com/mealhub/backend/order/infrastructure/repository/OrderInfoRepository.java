@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
+public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID>, OrderInfoRepositoryCustom {
 
     /**
      * @deprecated Use {@link #searchOrders(Long, List, OrderStatus, LocalDateTime, LocalDateTime, Pageable)} instead.
@@ -51,22 +51,9 @@ public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
     Page<OrderInfo> findByRestaurantIdAndStatus(UUID restaurantId, OrderStatus status, Pageable pageable);
 
     // 복합 검색 (사용자, 가게, 상태, 기간)
-    // restaurantIds가 null이면 무시, 비어있지 않으면 IN 절 적용
-    @Query("SELECT o FROM OrderInfo o WHERE " +
-            "(:userId IS NULL OR o.userId = :userId) AND " +
-            "(:restaurantIds IS NULL OR o.restaurantId IN :restaurantIds) AND " +
-            "(:status IS NULL OR o.status = :status) AND " +
-            "(:from IS NULL OR o.createdAt >= :from) AND " +
-            "(:to IS NULL OR o.createdAt <= :to) AND " +
-            "o.deletedAt IS NULL")
-    Page<OrderInfo> searchOrders(
-            @Param("userId") Long userId,
-            @Param("restaurantIds") List<UUID> restaurantIds,
-            @Param("status") OrderStatus status,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
-            Pageable pageable
-    );
+    // QueryDSL 동적 쿼리로 구현 (OrderInfoRepositoryImpl 참조)
+    // PostgreSQL null 파라미터 타입 추론 문제 해결을 위해 JPQL에서 QueryDSL로 마이그레이션
+    // @Query 메서드는 OrderInfoRepositoryCustom 인터페이스와 OrderInfoRepositoryImpl 구현체로 대체됨
 
     // 상태 리스트로 주문 조회
     @Query("SELECT o FROM OrderInfo o WHERE o.status IN :statuses AND o.deletedAt IS NULL")
