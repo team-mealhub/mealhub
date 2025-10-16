@@ -3,6 +3,7 @@ package com.mealhub.backend.review.presentation.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mealhub.backend.review.domain.entity.ReviewEntity;
 import com.mealhub.backend.user.domain.entity.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,18 +14,23 @@ import java.util.UUID;
 public class ReviewListItemDto {
 
     @JsonProperty("rv_id")
+    @Schema(description = "리뷰 ID", example = "1a2b3c4d-1111-2222-3333-abcdefabcdef")
     private UUID reviewId;
 
     @JsonProperty("u_id")
+    @Schema(description = "작성자 유저 ID", example = "12")
     private Long userId;
 
     @JsonProperty("u_nickname")
+    @Schema(description = "작성자 닉네임", example = "맛객리뷰어")
     private String userNickname;
 
     @JsonProperty("rv_star")
+    @Schema(description = "별점", example = "4")
     private short star;
 
     @JsonProperty("rv_comment")
+    @Schema(description = "리뷰 내용", example = "양도 많고 따뜻했어요.")
     private String comment;
 
     public static ReviewListItemDto from(ReviewEntity reviewEntity) {
