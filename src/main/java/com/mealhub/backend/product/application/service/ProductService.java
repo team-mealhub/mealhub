@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,9 +41,9 @@ public class ProductService {
 
         Product product = Product.createProduct(
                 restaurant,
-                productRequest.getPName(),
-                productRequest.getPDescription(),
-                productRequest.getPPrice(),
+                productRequest.getName(),
+                productRequest.getDescription(),
+                productRequest.getPrice(),
                 true //  다섯 번째 인자 (pStatus) 추가
         );
 
@@ -54,15 +55,25 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse getProduct(UUID pId) {
-        Product product = productRepository.findById(pId)
+    public ProductResponse getProduct(UUID pId, boolean status) {
+        QProduct qProduct = QProduct.product;
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(qProduct.id.eq(pId))
+                .and(qProduct.status.eq(status))
+                .and(qProduct.deletedAt.isNull());
+        Product product = productRepository.findOne(builder)
                 .orElseThrow(() -> new NotFoundException("해당 상품이 없습니다."));
         return ProductResponse.from(product);
     }
 
     @Transactional
     public List<ProductResponse> getVisibleProductsByRestaurant(UUID rId) {
-        List<Product> products = productRepository.findAllByRestaurantRestaurantIdAndStatus(rId, true);
+        BooleanBuilder builder = new BooleanBuilder();
+        QProduct qProduct = QProduct.product;
+        builder.and(qProduct.restaurant.restaurantId.eq(rId))
+                .and(qProduct.status.eq(true))
+                .and(qProduct.deletedAt.isNull());
+        List<Product> products = (List<Product>)productRepository.findAll(builder);
 
         return products.stream()
                 .map(ProductResponse::from)
@@ -78,9 +89,9 @@ public class ProductService {
         validateRestaurantOwner(product.getRestaurant(), userId);
 
         product.updateInfo(
-                productRequest.getPName(),
-                productRequest.getPDescription(),
-                productRequest.getPPrice()
+                productRequest.getName(),
+                productRequest.getDescription(),
+                productRequest.getPrice()
         );
 
         return ProductResponse.from(product);
@@ -95,7 +106,8 @@ public class ProductService {
 
         validateRestaurantOwner(product.getRestaurant(), userId);
 
-        productRepository.deleteById(pId);
+        product.setDeletedAt(LocalDateTime.now());
+        productRepository.save(product);
     }
 
 
@@ -133,6 +145,9 @@ public class ProductService {
             String searchKeyword = keyword.trim();
             builder.and(product.name.containsIgnoreCase(searchKeyword));
         }
+
+        builder.and(product.deletedAt.isNull())
+                .and(product.status.eq(true));
 
         // 'builder'는 검색 조건을, 'pageable'은 페이지 번호, 크기, 정렬 기준(ASC/DESC)을 포함한다.
         Page<Product> productPage = productRepository.findAll(builder, pageable);

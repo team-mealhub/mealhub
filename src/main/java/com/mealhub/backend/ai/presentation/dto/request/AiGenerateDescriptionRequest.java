@@ -1,5 +1,5 @@
 package com.mealhub.backend.ai.presentation.dto.request;
-
+/*
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -18,3 +18,5 @@ public class AiGenerateDescriptionRequest {
     private String productCategory;
 
 }
+
+ */

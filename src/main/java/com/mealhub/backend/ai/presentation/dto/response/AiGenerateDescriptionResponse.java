@@ -1,5 +1,5 @@
 package com.mealhub.backend.ai.presentation.dto.response;
-
+/*
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,3 +18,5 @@ public class AiGenerateDescriptionResponse {
                 .build();
     }
 }
+
+ */

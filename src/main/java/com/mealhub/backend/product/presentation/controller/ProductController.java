@@ -4,7 +4,6 @@ import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl
 import com.mealhub.backend.product.application.service.ProductService;
 import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
 import com.mealhub.backend.product.presentation.dto.response.ProductResponse;
-import com.mealhub.backend.user.domain.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,11 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "상품 관리 API", description = "상품 등록, 조회, 검색, 수정, 삭제 및 숨김 처리 기능.") //
@@ -53,8 +49,9 @@ public class ProductController {
             description = "특정 상품 ID를 이용해 해당 상품의 상세 정보를 조회합니다."
     )
     @GetMapping("/{pId}")
-    public ResponseEntity<ProductResponse> get(@PathVariable UUID pId) {
-        ProductResponse productResponse = productservice.getProduct(pId);
+    public ResponseEntity<ProductResponse> get(@PathVariable UUID pId, @RequestParam(name="status", required = false) Boolean status) {
+        status = status == null ? true : status;
+        ProductResponse productResponse = productservice.getProduct(pId, status);
         return ResponseEntity.ok(productResponse);
     }
 
@@ -108,7 +105,7 @@ public class ProductController {
     )
     @PatchMapping("/{pId}/hide")
     public ResponseEntity<ProductResponse> hideProduct(
-            @RequestParam UUID pId,
+            @PathVariable UUID pId,
             @RequestParam boolean status,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         ProductResponse productResponse = productservice.hideProduct(pId, userDetails.getId(),status);
@@ -124,10 +121,10 @@ public class ProductController {
     )
     @PreAuthorize("hasRole('OWNER') or hasRole('MANAGER')")
     @DeleteMapping("/{pId}")
-    public ResponseEntity<Void> delete(
+    public void delete(
             @PathVariable UUID pId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         productservice.deleteProduct(pId,userDetails.getId());
-        return ResponseEntity.noContent().build();
+
     }
 }

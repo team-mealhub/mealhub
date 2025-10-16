@@ -1,5 +1,5 @@
 package com.mealhub.backend.ai.application.service;
-
+/*
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import com.mealhub.backend.ai.domain.entity.AiEntity;
@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+
 public class AiService {
 
     private final UserRepository userRepository;
@@ -74,3 +75,5 @@ public class AiService {
         return AiGenerateDescriptionResponse.from(aiResponse);
     }
 }
+*/
+

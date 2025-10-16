@@ -1,5 +1,5 @@
 package com.mealhub.backend.ai.presentation.controller;
-
+/*
 import com.mealhub.backend.ai.application.service.AiService;
 import com.mealhub.backend.ai.presentation.dto.request.AiGenerateDescriptionRequest;
 import com.mealhub.backend.ai.presentation.dto.response.AiGenerateDescriptionResponse;
@@ -36,3 +36,4 @@ public class AiController {
         return aiService.generateDescription(aiGenerateDescriptionRequest, userId);
     }
 }
+*/

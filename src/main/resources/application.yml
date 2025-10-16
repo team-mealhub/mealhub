@@ -45,7 +45,7 @@ springdoc:
     - /v1/**
 
 # Gemini API Key
-gemini:
-  api:
-    key: ${GEMINI_API_KEY}
-  model: gemini-2.5-flash
+#gemini:
+  #api:
+    #key: ${GEMINI_API_KEY}
+  #model: gemini-2.5-flash

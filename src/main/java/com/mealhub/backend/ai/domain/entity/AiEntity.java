@@ -1,5 +1,5 @@
 package com.mealhub.backend.ai.domain.entity;
-
+/*
 import com.mealhub.backend.user.domain.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,3 +53,4 @@ public class AiEntity {
         return aiEntity;
     }
 }
+*/
