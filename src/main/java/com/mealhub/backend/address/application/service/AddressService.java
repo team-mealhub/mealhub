@@ -28,7 +28,7 @@ public class AddressService {
     // 새 주소 생성(기본주소로 설정하면 기존기본주소 해제
     @Transactional
     public AddressResponse create(User user, AddressRequest addressRequest) {
-        if (addressRequest.isDefault()) {
+        if (addressRequest.isDefaultAddress()) {
             addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(user)
                     .ifPresent(address -> address.changeDefault(false));
         }
@@ -36,7 +36,7 @@ public class AddressService {
         Address address = Address.builder()
                 .user(user)
                 .name(addressRequest.getName())
-                .defaultAddress(addressRequest.isDefault())
+                .defaultAddress(addressRequest.isDefaultAddress())
                 .address(addressRequest.getAddress())
                 .oldAddress(addressRequest.getOldAddress())
                 .longitude(addressRequest.getLongitude())
@@ -92,14 +92,14 @@ public class AddressService {
         Address address = addressRepository.findByIdAndUserAndDeletedFalse(id, user)
                 .orElseThrow(() -> new NotFoundException("요청한 주소를 찾을 수 없습니다."));
 
-        if (addressRequest.isDefault()) {
+        if (addressRequest.isDefaultAddress()) {
             addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(user)
                     .ifPresent(address1 -> address1.changeDefault(false));
         }
 
         address.update(
                 addressRequest.getName(),
-                addressRequest.isDefault(),
+                addressRequest.isDefaultAddress(),
                 addressRequest.getAddress(),
                 addressRequest.getOldAddress(),
                 addressRequest.getLongitude(),
