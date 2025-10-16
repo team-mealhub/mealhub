@@ -19,6 +19,7 @@ public class RestaurantCategoryResponse {
 
     public static RestaurantCategoryResponse from(RestaurantCategoryEntity category) {
         return RestaurantCategoryResponse.builder()
+                .categoryId(category.getCategoryId())
                 .category(category.getCategory())
                 .build();
     }
