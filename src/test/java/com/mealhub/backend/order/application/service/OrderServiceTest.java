@@ -88,8 +88,9 @@ class OrderServiceTest {
 
         // Product Mock 설정
         Product product = mock(Product.class);
-        when(product.getPName()).thenReturn("치킨");
-        when(product.getPPrice()).thenReturn(20000L);
+        when(product.getId()).thenReturn(productId);
+        when(product.getName()).thenReturn("치킨");
+        when(product.getPrice()).thenReturn(20000L);
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, request.getORequirements());
@@ -115,14 +116,14 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_MANAGER;
 
         OrderInfo orderInfo = OrderInfo.createOrder(2L, UUID.randomUUID(), UUID.randomUUID(), null);
-        when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
+        when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when
         OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole);
 
         // then
         assertThat(response).isNotNull();
-        verify(orderInfoRepository, times(1)).findById(orderId);
+        verify(orderInfoRepository, times(1)).findByIdWithItems(orderId);
     }
 
     @Test
@@ -134,7 +135,7 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_CUSTOMER;
 
         OrderInfo orderInfo = OrderInfo.createOrder(currentUserId, UUID.randomUUID(), UUID.randomUUID(), null);
-        when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
+        when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when
         OrderDetailResponse response = orderService.getOrder(orderId, currentUserId, userRole);
@@ -152,7 +153,7 @@ class OrderServiceTest {
         UserRole userRole = UserRole.ROLE_CUSTOMER;
 
         OrderInfo orderInfo = OrderInfo.createOrder(999L, UUID.randomUUID(), UUID.randomUUID(), null);
-        when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
+        when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         // when & then
         assertThatThrownBy(() -> orderService.getOrder(orderId, currentUserId, userRole))
@@ -171,14 +172,14 @@ class OrderServiceTest {
         UUID otherRestaurantId = UUID.randomUUID();
 
         OrderInfo orderInfo = OrderInfo.createOrder(2L, otherRestaurantId, UUID.randomUUID(), null);
-        when(orderInfoRepository.findById(orderId)).thenReturn(Optional.of(orderInfo));
+        when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.of(orderInfo));
 
         User otherUser = mock(User.class);
         when(otherUser.getId()).thenReturn(otherUserId);
 
         RestaurantEntity otherRestaurant = mock(RestaurantEntity.class);
         when(otherRestaurant.getUser()).thenReturn(otherUser);
-        when(restaurantRepository.findById(otherRestaurantId)).thenReturn(Optional.of(otherRestaurant));
+        when(restaurantRepository.findByIdWithUser(otherRestaurantId)).thenReturn(Optional.of(otherRestaurant));
 
         // when & then
         assertThatThrownBy(() -> orderService.getOrder(orderId, currentUserId, userRole))
@@ -191,7 +192,7 @@ class OrderServiceTest {
     void getOrder_Fail_NotFound() {
         // given
         UUID orderId = UUID.randomUUID();
-        when(orderInfoRepository.findById(orderId)).thenReturn(Optional.empty());
+        when(orderInfoRepository.findByIdWithItems(orderId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> orderService.getOrder(orderId, 1L, UserRole.ROLE_MANAGER))
@@ -240,7 +241,7 @@ class OrderServiceTest {
 
         RestaurantEntity ownerRestaurant = mock(RestaurantEntity.class);
         when(ownerRestaurant.getUser()).thenReturn(ownerUser);
-        when(restaurantRepository.findById(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
+        when(restaurantRepository.findByIdWithUser(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
 
         when(orderInfoRepository.searchOrders(isNull(), eq(List.of(ownerRestaurantId)), isNull(), isNull(), isNull(), eq(pageable)))
                 .thenReturn(page);
@@ -314,7 +315,7 @@ class OrderServiceTest {
 
         RestaurantEntity ownerRestaurant = mock(RestaurantEntity.class);
         when(ownerRestaurant.getUser()).thenReturn(ownerUser);
-        when(restaurantRepository.findById(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
+        when(restaurantRepository.findByIdWithUser(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
 
         // when
         OrderResponse response = orderService.updateOrderStatus(orderId, request, currentUserId);
@@ -344,7 +345,7 @@ class OrderServiceTest {
 
         RestaurantEntity otherRestaurant = mock(RestaurantEntity.class);
         when(otherRestaurant.getUser()).thenReturn(otherUser);
-        when(restaurantRepository.findById(otherRestaurantId)).thenReturn(Optional.of(otherRestaurant));
+        when(restaurantRepository.findByIdWithUser(otherRestaurantId)).thenReturn(Optional.of(otherRestaurant));
 
         // when & then
         assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, request, currentUserId))
@@ -423,7 +424,7 @@ class OrderServiceTest {
 
         RestaurantEntity ownerRestaurant = mock(RestaurantEntity.class);
         when(ownerRestaurant.getUser()).thenReturn(ownerUser);
-        when(restaurantRepository.findById(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
+        when(restaurantRepository.findByIdWithUser(ownerRestaurantId)).thenReturn(Optional.of(ownerRestaurant));
 
         // when
         orderService.deleteOrder(orderId, deletedBy, userRole);
@@ -451,7 +452,7 @@ class OrderServiceTest {
 
         RestaurantEntity otherRestaurant = mock(RestaurantEntity.class);
         when(otherRestaurant.getUser()).thenReturn(otherUser);
-        when(restaurantRepository.findById(otherRestaurantId)).thenReturn(Optional.of(otherRestaurant));
+        when(restaurantRepository.findByIdWithUser(otherRestaurantId)).thenReturn(Optional.of(otherRestaurant));
 
         // when & then
         assertThatThrownBy(() -> orderService.deleteOrder(orderId, deletedBy, userRole))

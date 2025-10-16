@@ -86,6 +86,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/v1/restaurant/category/**")
                         .hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/v1/restaurant/category").permitAll()
+                        // Ai
+                        .requestMatchers(HttpMethod.POST, "/v1/ai/generate-description")
+                        .hasAnyRole("OWNER", "MANAGER")
                         .anyRequest().authenticated()
         );
 
