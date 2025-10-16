@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class ProductController {
             summary = "상품 신규 등록",
             description = "새로운 상품 정보를 시스템에 등록합니다. 가게 소유자만 가능합니다."
     )
+    @PreAuthorize("hasRole('OWNER') or hasRole('MANAGER')")
     @PostMapping
     public ResponseEntity<ProductResponse> create(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -81,6 +83,7 @@ public class ProductController {
             summary = "상품 정보 수정",
             description = "특정 상품 ID의 정보(이름, 설명, 가격)를 수정합니다."
     )
+    @PreAuthorize("hasRole('OWNER') or hasRole('MANAGER')")
     @PutMapping("/{pId}")
     public ResponseEntity<ProductResponse> update(
             @PathVariable UUID pId,
@@ -119,6 +122,7 @@ public class ProductController {
             summary = "상품 영구 삭제",
             description = "특정 상품을 삭제합니다."
     )
+    @PreAuthorize("hasRole('OWNER') or hasRole('MANAGER')")
     @DeleteMapping("/{pId}")
     public ResponseEntity<Void> delete(
             @PathVariable UUID pId,
