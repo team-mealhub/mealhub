@@ -7,22 +7,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
-    /**
-     * 주문할 장바구니 아이템 조회 (buying=true, 삭제되지 않음, Product FETCH JOIN)
-     *
-     * @param userId 사용자 ID
-     * @return 주문 대상 장바구니 아이템 리스트
-     */
-    @Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.user.id = :userId AND c.buying = true AND c.deletedAt IS NULL")
-    java.util.List<CartItem> findByUserIdAndBuyingIsTrueAndDeletedAtIsNull(@org.springframework.data.repository.query.Param("userId") Long userId);
-
     @Query("""
         SELECT c
         FROM CartItem c
@@ -43,4 +36,15 @@ public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
             AND c.deletedAt IS NULL
         """)
     Page<CartItem> findActiveCartItems(Long userId, CartItemStatus status, boolean buying, Pageable pageable);
+
+    @Query("""
+        SELECT c
+        FROM CartItem c
+        JOIN FETCH c.product
+        WHERE c.id IN :cartItemIds
+            AND c.deletedAt IS NULL
+        """)
+    List<CartItem> findAllWithProductByIdIn(@Param("cartItemIds") List<UUID> cartItemIds);
+
+    List<CartItem> findAllByUserIdAndBuyingTrueAndDeletedAtIsNull(Long userId);
 }

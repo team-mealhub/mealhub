@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -18,7 +19,7 @@ public class PaymentService {
 
     private final PaymentLogRepository paymentLogRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public PaymentLogResponse createPaymentLog(PaymentLogRequest.Create request) {
         PaymentLog paymentLog = PaymentLog.create(request);
         PaymentLog savedPaymentLog = paymentLogRepository.save(paymentLog);

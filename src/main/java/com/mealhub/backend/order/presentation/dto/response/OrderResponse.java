@@ -1,5 +1,6 @@
 package com.mealhub.backend.order.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mealhub.backend.order.domain.entity.OrderInfo;
 import com.mealhub.backend.order.domain.enums.OrderStatus;
 import lombok.Builder;
@@ -19,6 +20,8 @@ public class OrderResponse {
     private Long total;
     private OrderStatus status;
     private String requirements;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     public static OrderResponse from(OrderInfo orderInfo) {
