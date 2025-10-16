@@ -1,7 +1,7 @@
 package com.mealhub.backend.product.domain.entity;
 
 import com.mealhub.backend.global.domain.entity.BaseAuditEntity;
-import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity; // ⭐️ RestaurantEntity import 추가
+import com.mealhub.backend.restaurant.domain.entity.RestaurantEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -65,7 +65,8 @@ public class Product extends BaseAuditEntity {
         this.price = price;
     }
 
-    public void setHidden(boolean isHidden) {
-        this.status = !isHidden;
+    public void setHidden(boolean status) {
+
+        this.status = status;
     }
 }

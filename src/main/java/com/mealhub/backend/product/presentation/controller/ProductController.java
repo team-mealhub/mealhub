@@ -30,9 +30,7 @@ import java.util.UUID;
 public class ProductController {
     private final ProductService productservice;
 
-
      //1. 상품 생성 (Create)
-
     @Operation(
             summary = "상품 신규 등록",
             description = "새로운 상품 정보를 시스템에 등록합니다. 가게 소유자만 가능합니다."
@@ -48,7 +46,6 @@ public class ProductController {
 
 
      //2. 상품 조회 (Read - by ID)
-
     @Operation(
             summary = "단일 상품 상세 조회",
             description = "특정 상품 ID를 이용해 해당 상품의 상세 정보를 조회합니다."
@@ -108,9 +105,10 @@ public class ProductController {
     )
     @PatchMapping("/{pId}/hide")
     public ResponseEntity<ProductResponse> hideProduct(
-            @PathVariable UUID pId,
+            @RequestParam UUID pId,
+            @RequestParam boolean status,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        ProductResponse productResponse = productservice.hideProduct(pId, userDetails.getId());
+        ProductResponse productResponse = productservice.hideProduct(pId, userDetails.getId(),status);
         return ResponseEntity.ok(productResponse);
     }
 
