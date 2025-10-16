@@ -1,5 +1,6 @@
 package com.mealhub.backend.global.infrastructure.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtAuthorizationFilter;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
 import com.mealhub.backend.global.infrastructure.config.security.jwt.handler.JwtAccessDeniedHandler;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -45,7 +47,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(jwtUtil, userDetailsService);
+        return new JwtAuthorizationFilter(jwtUtil, userDetailsService, objectMapper);
     }
 
     @Bean

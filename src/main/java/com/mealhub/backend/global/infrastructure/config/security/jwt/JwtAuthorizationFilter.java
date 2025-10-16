@@ -1,12 +1,16 @@
 package com.mealhub.backend.global.infrastructure.config.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mealhub.backend.global.infrastructure.config.security.UserDetailsServiceImpl;
+import com.mealhub.backend.global.presentation.dto.ErrorResponse;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -22,13 +26,23 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = jwtUtil.getJwtFromHeader(request);
 
         if (StringUtils.hasText(token)) {
-            if (!jwtUtil.validateToken(token)) { return; }
+            if (!jwtUtil.validateToken(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setCharacterEncoding("UTF-8");
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+                ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+                response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+
+                return;
+            }
 
             Claims info = jwtUtil.getUserInfoFromToken(token);
 
