@@ -94,7 +94,7 @@ public class OrderController {
             @Parameter(name = "from", description = "검색 시작 일시 (ISO DateTime)", in = ParameterIn.QUERY),
             @Parameter(name = "to", description = "검색 종료 일시 (ISO DateTime)", in = ParameterIn.QUERY),
             @Parameter(name = "page", description = "페이지 번호 (0부터 시작)", in = ParameterIn.QUERY),
-            @Parameter(name = "size", description = "페이지 크기 (기본값: 20)", in = ParameterIn.QUERY),
+            @Parameter(name = "size", description = "페이지 크기 (10, 30, 50만 허용, 기본값: 10)", in = ParameterIn.QUERY),
             @Parameter(name = "sort", description = "정렬 기준 (기본값: createdAt,desc)", in = ParameterIn.QUERY)
     })
     @ApiResponse(responseCode = "200", description = "주문 검색 성공")
@@ -108,16 +108,42 @@ public class OrderController {
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
+            @RequestParam(required = false, defaultValue = "createdAt,desc") String[] sort,
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         Long currentUserId = userDetails.getId();
         UserRole userRole = userDetails.getRole();
 
+        // 페이지 크기 검증: 10, 30, 50만 허용
+        int validatedSize = validatePageSize(size);
+
+        // Sort 객체 생성
+        Sort sortObj = Sort.by(Sort.Direction.DESC, "createdAt");
+        if (sort.length == 2) {
+            Sort.Direction direction = sort[1].equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            sortObj = Sort.by(direction, sort[0]);
+        }
+
+        // Pageable 생성
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, validatedSize, sortObj);
+
         Page<OrderResponse> response = orderService.searchOrders(
                 uId, rId, status, from, to, pageable, currentUserId, userRole
         );
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 페이지 크기 검증
+     * 10, 30, 50만 허용하고, 그 외 값은 10으로 고정
+     */
+    private int validatePageSize(int size) {
+        if (size == 10 || size == 30 || size == 50) {
+            return size;
+        }
+        return 10; // 기본값
     }
 
     @Operation(
