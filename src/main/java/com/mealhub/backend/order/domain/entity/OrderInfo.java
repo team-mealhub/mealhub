@@ -116,6 +116,12 @@ public class OrderInfo extends BaseAuditEntity {
         if (this.status != OrderStatus.PENDING) {
             throw new OrderCancelException("Order.Cancel.OnlyPending");
         }
+
+        // 주문 생성 후 5분 이내에만 취소 가능
+        if (java.time.Duration.between(this.getCreatedAt(), java.time.LocalDateTime.now()).toMinutes() > 5) {
+            throw new OrderCancelException("Order.Cancel.TimeExpired");
+        }
+
         updateStatus(OrderStatus.CANCELLED);
     }
 
