@@ -1,5 +1,6 @@
 package com.mealhub.backend.payment.presentation.controller;
 
+import com.mealhub.backend.global.presentation.dto.PageResult;
 import com.mealhub.backend.payment.application.service.PaymentService;
 import com.mealhub.backend.payment.presentation.dto.request.PaymentLogRequest;
 import com.mealhub.backend.payment.presentation.dto.response.PaymentLogResponse;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +34,7 @@ public class PaymentController {
     })
     @ApiResponse(responseCode = "200", description = "결제 내역 조회 성공")
     @PostMapping("/logs")
-    public Page<PaymentLogResponse> getPaymentLogs(
+    public PageResult<PaymentLogResponse> getPaymentLogs(
             @Valid @RequestBody PaymentLogRequest.Search request,
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size
