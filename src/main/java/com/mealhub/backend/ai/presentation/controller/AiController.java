@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Ai Controller", description = "AI 도메인 API")
+@Tag(name = "AI API", description = "Gemini를 활용한 상품 설명 자동 생성 API")
 @RestController
 @RequestMapping("/v1/ai")
 @RequiredArgsConstructor

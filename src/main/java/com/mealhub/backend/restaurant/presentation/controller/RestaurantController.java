@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Restaurant Controller", description = "가게 도메인 API")
+@Tag(name = "가게 API", description = "가게 등록, 조회, 수정, 삭제, 검색, 상태 변경 기능 제공")
 @RestController
 @RequestMapping("/v1/restaurant")
 @RequiredArgsConstructor
