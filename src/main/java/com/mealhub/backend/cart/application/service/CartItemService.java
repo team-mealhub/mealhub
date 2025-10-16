@@ -8,8 +8,8 @@ import com.mealhub.backend.cart.presentation.dto.request.CartItemCreateRequest;
 import com.mealhub.backend.cart.presentation.dto.request.CartItemUpdateRequest;
 import com.mealhub.backend.cart.presentation.dto.response.CartItemResponse;
 import com.mealhub.backend.cart.presentation.dto.response.CartResponse;
-import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.product.domain.entity.Product;
+import com.mealhub.backend.product.domain.exception.ProductNotFoundException;
 import com.mealhub.backend.product.infrastructure.repository.ProductRepository;
 import com.mealhub.backend.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +34,12 @@ public class CartItemService {
 
     @Transactional
     public CartItemResponse addCartItem(User user, CartItemCreateRequest request) {
-        // TODO: Product 예외로 변경
         Product product = productRepository.findById(request.getProductId())
-                        .orElseThrow(NotFoundException::new);
+                .orElseThrow(ProductNotFoundException::new);
 
         CartItem cartItem;
 
-        if (request.getStatus() == CartItemStatus.CART && !request.isBuying()) {
+        if (request.getStatus() == CartItemStatus.CART) {
             Optional<CartItem> existingCartItem = cartItemRepository.findActiveCartItem(user.getId(), product.getId(), CartItemStatus.CART, false);
 
             if (existingCartItem.isPresent()) {
@@ -58,6 +57,8 @@ public class CartItemService {
 
     @Transactional(readOnly = true)
     public CartResponse getCartItems(Long userId, int page, int size) {
+        size = List.of(10, 30, 50).contains(size) ? size : 10;
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<CartItem> cartItems = cartItemRepository.findActiveCartItems(userId, CartItemStatus.CART, false, pageable);
 

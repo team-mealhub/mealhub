@@ -55,7 +55,7 @@ public class CartItem extends BaseAuditEntity {
         CartItem cartItem = new CartItem(
                 request.getQuantity(),
                 request.getStatus(),
-                request.isBuying()
+                false
         );
 
         cartItem.user = user;
