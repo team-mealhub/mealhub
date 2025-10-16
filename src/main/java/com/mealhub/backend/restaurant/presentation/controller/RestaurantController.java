@@ -4,7 +4,6 @@ import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl
 import com.mealhub.backend.restaurant.application.service.RestaurantService;
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantRequest;
 import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantResponse;
-import com.mealhub.backend.user.domain.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,9 +36,9 @@ public class RestaurantController {
     @ResponseStatus(HttpStatus.CREATED)
     public RestaurantResponse createRestaurant(
             @Valid @RequestBody RestaurantRequest restaurantRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
         return restaurantService.createRestaurant(restaurantRequest, userId);
     }
@@ -58,12 +57,11 @@ public class RestaurantController {
     public RestaurantResponse updateRestaurant(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody RestaurantRequest restaurantRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
-        return restaurantService.updateRestaurant(restaurantId, restaurantRequest, userId, role);
+        return restaurantService.updateRestaurant(restaurantId, restaurantRequest, userId);
     }
 
     @DeleteMapping("/{restaurantId}")
@@ -71,12 +69,11 @@ public class RestaurantController {
     @ResponseStatus(HttpStatus.OK)
     public void deleteRestaurant(
             @PathVariable UUID restaurantId,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
-        restaurantService.deleteRestaurant(restaurantId, userId, role);
+        restaurantService.deleteRestaurant(restaurantId, userId);
     }
 
     @GetMapping("/search")
@@ -98,9 +95,9 @@ public class RestaurantController {
     public RestaurantResponse changeRestaurantStatus(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody RestaurantRequest restaurantRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
         return restaurantService.changeRestaurantStatus(restaurantId, restaurantRequest, userId);
     }

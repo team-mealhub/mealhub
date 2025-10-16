@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -86,5 +87,12 @@ public class RestaurantEntity extends BaseAuditEntity {
     // 가게 영업 상태 변경 메서드
     public void changeStatus(Boolean isOpen) {
         this.isOpen = isOpen;
+    }
+
+    // 가게 삭제 soft delete 메서드
+    public void closure(Long userId) {
+        this.deletedBy = userId;
+        this.deletedAt = LocalDateTime.now();
+        this.isOpen = false;
     }
 }
