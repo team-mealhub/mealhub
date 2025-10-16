@@ -21,7 +21,7 @@ public class OrderInfo extends BaseAuditEntity {
 
     @Id
     @Column(name = "o_info_id", columnDefinition = "UUID")
-    private UUID oInfoId;
+    private UUID orderInfoId;
 
     @Column(name = "u_id", nullable = false)
     private Long userId;
@@ -48,7 +48,7 @@ public class OrderInfo extends BaseAuditEntity {
     // 정적 팩토리 메서드
     public static OrderInfo createOrder(Long userId, UUID restaurantId, UUID addressId, String requirements) {
         OrderInfo orderInfo = new OrderInfo();
-        orderInfo.oInfoId = UUID.randomUUID();
+        orderInfo.orderInfoId = UUID.randomUUID();
         orderInfo.userId = userId;
         orderInfo.restaurantId = restaurantId;
         orderInfo.addressId = addressId;

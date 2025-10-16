@@ -64,7 +64,7 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        OrderInfo order = orderInfoRepository.findByOInfoIdAndDeletedAtIsNull(orderId)
+        OrderInfo order = orderInfoRepository.findByOrderInfoIdAndDeletedAtIsNull(orderId)
                 .orElseThrow(OrderNotFoundException::new);
 
         // 주문자 = 현재 로그인한 사용자 확인
@@ -78,7 +78,7 @@ public class ReviewService {
         }
 
         // 주문 중복 리뷰 방지 (미삭제 리뷰 존재 -> 충돌)
-        if (reviewRepository.existsByOrderIdAndDeletedAtIsNull(order.getOInfoId())) {
+        if (reviewRepository.existsByOrderIdAndDeletedAtIsNull(order.getOrderInfoId())) {
             throw new ReviewAlreadyExistsForOrderException();
         }
 
@@ -87,7 +87,7 @@ public class ReviewService {
                 .orElseThrow(RestaurantNotFoundException::new);
 
         ReviewEntity savedReviewEntity = reviewRepository.save(
-                ReviewEntity.from(user, restaurant, order.getOInfoId(), createDto.getStar(), createDto.getComment(), createDto.getOwnerOnly())
+                ReviewEntity.from(user, restaurant, order.getOrderInfoId(), createDto.getStar(), createDto.getComment(), createDto.getOwnerOnly())
         );
 
         return ReviewResDto.from(savedReviewEntity);

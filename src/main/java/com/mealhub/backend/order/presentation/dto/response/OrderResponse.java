@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 public class OrderResponse {
 
-    private UUID oInfoId;
+    private UUID orderInfoId;
     private Long userId;
     private UUID restaurantId;
     private UUID addressId;
@@ -26,7 +26,7 @@ public class OrderResponse {
 
     public static OrderResponse from(OrderInfo orderInfo) {
         return OrderResponse.builder()
-                .oInfoId(orderInfo.getOInfoId())
+                .orderInfoId(orderInfo.getOrderInfoId())
                 .userId(orderInfo.getUserId())
                 .restaurantId(orderInfo.getRestaurantId())
                 .addressId(orderInfo.getAddressId())

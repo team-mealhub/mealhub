@@ -78,10 +78,10 @@ public interface OrderInfoRepository extends JpaRepository<OrderInfo, UUID> {
      * @param orderId the order ID
      * @return Optional of OrderInfo with items eagerly loaded
      */
-    @Query("SELECT o FROM OrderInfo o LEFT JOIN FETCH o.items WHERE o.oInfoId = :orderId")
+    @Query("SELECT o FROM OrderInfo o LEFT JOIN FETCH o.items WHERE o.orderInfoId = :orderId")
     java.util.Optional<OrderInfo> findByIdWithItems(@Param("orderId") UUID orderId);
 
     // 주문 ID로 삭제되지 않은 주문 조회
-    @Query("SELECT o FROM OrderInfo o WHERE o.oInfoId = :oInfoId AND o.deletedAt IS NULL")
-    Optional<OrderInfo> findByOInfoIdAndDeletedAtIsNull(UUID oInfoId);
+    @Query("SELECT o FROM OrderInfo o WHERE o.orderInfoId = :orderInfoId AND o.deletedAt IS NULL")
+    Optional<OrderInfo> findByOrderInfoIdAndDeletedAtIsNull(UUID orderInfoId);
 }

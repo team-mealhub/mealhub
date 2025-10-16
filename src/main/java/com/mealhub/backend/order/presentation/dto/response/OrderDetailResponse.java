@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Builder
 public class OrderDetailResponse {
 
-    private UUID oInfoId;
+    private UUID orderInfoId;
     private Long userId;
     private UUID restaurantId;
     private UUID addressId;
@@ -28,7 +28,7 @@ public class OrderDetailResponse {
     @Data
     @Builder
     public static class OrderItemResponse {
-        private UUID oItemId;
+        private UUID orderItemId;
         private String product;
         private Long price;
         private Long quantity;
@@ -36,7 +36,7 @@ public class OrderDetailResponse {
 
         public static OrderItemResponse from(OrderItem item) {
             return OrderItemResponse.builder()
-                    .oItemId(item.getOItemId())
+                    .orderItemId(item.getOrderItemId())
                     .product(item.getProduct())
                     .price(item.getPrice())
                     .quantity(item.getQuantity())
@@ -47,7 +47,7 @@ public class OrderDetailResponse {
 
     public static OrderDetailResponse from(OrderInfo orderInfo) {
         return OrderDetailResponse.builder()
-                .oInfoId(orderInfo.getOInfoId())
+                .orderInfoId(orderInfo.getOrderInfoId())
                 .userId(orderInfo.getUserId())
                 .restaurantId(orderInfo.getRestaurantId())
                 .addressId(orderInfo.getAddressId())

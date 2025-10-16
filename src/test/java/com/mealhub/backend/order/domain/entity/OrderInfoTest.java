@@ -26,7 +26,7 @@ class OrderInfoTest {
         OrderInfo orderInfo = OrderInfo.createOrder(userId, restaurantId, addressId, requirements);
 
         // then
-        assertThat(orderInfo.getOInfoId()).isNotNull();
+        assertThat(orderInfo.getOrderInfoId()).isNotNull();
         assertThat(orderInfo.getUserId()).isEqualTo(userId);
         assertThat(orderInfo.getRestaurantId()).isEqualTo(restaurantId);
         assertThat(orderInfo.getAddressId()).isEqualTo(addressId);
