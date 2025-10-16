@@ -1,5 +1,6 @@
 package com.mealhub.backend.restaurant.presentation.controller;
 
+import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl;
 import com.mealhub.backend.restaurant.application.service.RestaurantCategoryService;
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryPatchRequest;
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantCategoryRequest;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -62,8 +64,12 @@ public class RestaurantCategoryController {
     @DeleteMapping("/{categoryId}")
     @Operation(summary = "가게 분류 삭제")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteRestaurantCategory(@PathVariable UUID categoryId) {
+    public void deleteRestaurantCategory(
+            @PathVariable UUID categoryId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        Long userId = user.getId();
 
-        restaurantCategoryService.deleteRestaurantCategory(categoryId);
+        restaurantCategoryService.deleteRestaurantCategory(categoryId, userId);
     }
 }
