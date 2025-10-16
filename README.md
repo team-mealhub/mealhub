@@ -13,9 +13,11 @@ Mealhub는 음식점 검색부터 주문·결제, 그리고 신뢰 가능한 리
 <br />
 
 ## 💁‍♂️ 프로젝트 팀원
-| [김민형](https://github.com/rnignon) | [김나은](https://github.com/hellonaeunkim) | [박근용](https://github.com/GoodNyong) | [이유진](https://github.com/Yu-Jin9) | [이호준](https://github.com/jake8771) | [장가현](https://github.com/Janghyeon2412) |
+
+| [<img src="https://github.com/rnignon.png" width="100" style="border-radius:50%"/>](https://github.com/rnignon) | [<img src="https://github.com/hellonaeunkim.png" width="100" style="border-radius:50%"/>](https://github.com/hellonaeunkim) | [<img src="https://github.com/GoodNyong.png" width="100" style="border-radius:50%"/>](https://github.com/GoodNyong) | [<img src="https://github.com/Yu-Jin9.png" width="100" style="border-radius:50%"/>](https://github.com/Yu-Jin9) | [<img src="https://github.com/jake8771.png" width="100" style="border-radius:50%"/>](https://github.com/jake8771) | [<img src="https://github.com/Janghyeon2412.png" width="100" style="border-radius:50%"/>](https://github.com/Janghyeon2412) |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-|유저 도메인||||||
+| **[김민형](https://github.com/rnignon)** | **[김나은](https://github.com/hellonaeunkim)** | **[박근용](https://github.com/GoodNyong)** | **[이유진](https://github.com/Yu-Jin9)** | **[이호준](https://github.com/jake8771)** | **[장가현](https://github.com/Janghyeon2412)** |
+| User, Auth, Cart, PaymentLog | Restaurant, RestauCategory AI, CI | Order | Review | Product | Address |
 
 <br />
 
