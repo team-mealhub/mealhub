@@ -67,7 +67,7 @@ public class RestaurantService {
         }
     }
 
-    // 가게 등록
+    // 가게 등록 (OWNER, MANAGER 권한만 가능)
     @Transactional
     public RestaurantResponse createRestaurant(
             RestaurantRequest restaurantRequest,
@@ -106,7 +106,7 @@ public class RestaurantService {
 
     }
 
-    // 가게 수정
+    // 가게 수정 (OWNER, MANAGER 권한만 가능)
     @Transactional
     public RestaurantResponse updateRestaurant(UUID restaurantId,
             RestaurantRequest restaurantRequest, Long userId, UserRole role) {
@@ -130,7 +130,7 @@ public class RestaurantService {
         return RestaurantResponse.from(restaurantEntity);
     }
 
-    // 가게 삭제
+    // 가게 삭제 (OWNER, MANAGER 권한만 가능)
     @Transactional
     public void deleteRestaurant(UUID restaurantId, Long userId, UserRole role) {
 
@@ -192,7 +192,7 @@ public class RestaurantService {
         return pageResult.map(RestaurantResponse::from);
     }
 
-    // 가게 상태 변경
+    // 가게 상태 변경 (OWNER, MANAGER 권한만 가능)
     @Transactional
     public RestaurantResponse changeRestaurantStatus(UUID restaurantId,
             RestaurantRequest restaurantRequest, Long userId) {
