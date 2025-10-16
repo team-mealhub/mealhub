@@ -1,6 +1,7 @@
 package com.mealhub.backend.user.application.service;
 
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
+import com.mealhub.backend.user.application.dto.SignInResult;
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.domain.exception.InvalidUserRoleException;
@@ -9,6 +10,7 @@ import com.mealhub.backend.user.domain.exception.UserDuplicateException;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import com.mealhub.backend.user.presentation.dto.request.UserSignInRequest;
 import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
+import com.mealhub.backend.user.presentation.dto.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,7 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public String signIn(UserSignInRequest request) {
+    public SignInResult signIn(UserSignInRequest request) {
         User user = userRepository.findByUserId(request.getUserId())
                 .orElseThrow(UserAuthenticationException::new);
 
@@ -49,6 +51,9 @@ public class AuthService {
             throw new UserAuthenticationException();
         }
 
-        return jwtUtil.generateAccessToken(user.getUserId(), user.getRole());
+        String token = jwtUtil.generateAccessToken(user.getUserId(), user.getRole());
+        UserResponse response = new UserResponse(user);
+
+        return new SignInResult(token, response);
     }
 }

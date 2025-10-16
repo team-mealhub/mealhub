@@ -1,6 +1,7 @@
 package com.mealhub.backend.user.application.service;
 
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
+import com.mealhub.backend.user.application.dto.SignInResult;
 import com.mealhub.backend.user.domain.entity.User;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.domain.exception.UserAuthenticationException;
@@ -8,6 +9,7 @@ import com.mealhub.backend.user.domain.exception.UserDuplicateException;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import com.mealhub.backend.user.presentation.dto.request.UserSignInRequest;
 import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
+import com.mealhub.backend.user.presentation.dto.response.UserResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,8 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -90,13 +91,16 @@ class AuthServiceTest {
 
         String accessToken = "accessToken";
 
+        SignInResult result = new SignInResult(accessToken, new UserResponse(user));
+
         /* when */
         when(userRepository.findByUserId(anyString())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(Boolean.TRUE);
         when(jwtUtil.generateAccessToken(anyString(), any(UserRole.class))).thenReturn(accessToken);
 
         /* then */
-        assertThat(authService.signIn(request)).isEqualTo(accessToken);
+        assertThat(authService.signIn(request).getToken()).isEqualTo(accessToken);
+        assertThat(authService.signIn(request).getUserResponse().getUserId()).isEqualTo(user.getUserId());
     }
 
     @Test

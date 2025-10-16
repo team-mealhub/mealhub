@@ -2,9 +2,11 @@ package com.mealhub.backend.user.presentation.controller;
 
 import com.mealhub.backend.global.infrastructure.config.security.jwt.JwtUtil;
 import com.mealhub.backend.global.presentation.dto.ErrorResponse;
+import com.mealhub.backend.user.application.dto.SignInResult;
 import com.mealhub.backend.user.application.service.AuthService;
 import com.mealhub.backend.user.presentation.dto.request.UserSignInRequest;
 import com.mealhub.backend.user.presentation.dto.request.UserSignUpRequest;
+import com.mealhub.backend.user.presentation.dto.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -47,11 +49,11 @@ public class AuthController {
             headers = {@Header(name = JwtUtil.AUTHORIZATION_HEADER, description = "JWT 토큰", schema = @Schema(type = "string"))}
     )
     @PostMapping("/signIn")
-    public ResponseEntity<?> signIn(@RequestBody UserSignInRequest request) {
-        String token = authService.signIn(request);
+    public ResponseEntity<UserResponse> signIn(@RequestBody UserSignInRequest request) {
+        SignInResult result = authService.signIn(request);
 
         return ResponseEntity.ok()
-                .header(JwtUtil.AUTHORIZATION_HEADER, token)
-                .build();
+                .header(JwtUtil.AUTHORIZATION_HEADER, result.getToken())
+                .body(result.getUserResponse());
     }
 }

@@ -17,8 +17,8 @@ import lombok.NoArgsConstructor;
 public class UserSignUpRequest {
 
     @NotBlank
-    @Size(min = 4, max = 20)
-    @Pattern(regexp = "^[a-zA-Z0-9._-]+$")
+    @Size(min = 4, max = 10)
+    @Pattern(regexp = "^[a-z0-9]+$")
     @Schema(description = "아이디", example = "test")
     private String userId;
 
@@ -33,7 +33,7 @@ public class UserSignUpRequest {
     private String nickname;
 
     @NotBlank
-    @Size(min = 8, max = 20)
+    @Size(min = 8, max = 15)
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[~!@#$%^&*()_+\\-={}\\[\\]:;\"'<>,.?/]).+$")
     @Schema(description = "비밀번호", example = "test1234!")
     private String password;

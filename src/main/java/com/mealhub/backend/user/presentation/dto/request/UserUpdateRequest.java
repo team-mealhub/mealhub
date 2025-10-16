@@ -25,7 +25,7 @@ public class UserUpdateRequest {
     private String nickname;
 
     @NotBlank
-    @Size(min = 8, max = 20)
+    @Size(min = 8, max = 15)
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,20}$")
     @Schema(description = "비밀번호", example = "test1234!")
     private String password;
