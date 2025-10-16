@@ -72,6 +72,7 @@ public class AddressControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("우리집"))
                 .andExpect(jsonPath("$.isDefault").value(true))
+                .andExpect(jsonPath("$.default").doesNotExist())
                 .andDo(MockMvcResultHandlers.print());
 
     }

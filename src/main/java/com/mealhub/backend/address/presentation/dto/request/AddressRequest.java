@@ -19,7 +19,7 @@ public class AddressRequest {
     private String name; // 주소 별칭
 
     @JsonProperty("isDefault")
-    private boolean isDefault; // 기본 배송지 여부
+    private boolean defaultAddress; // 기본 배송지 여부
 
     @NotBlank(message = "도로명 주소는 필수값입니다.")
     @Size(max = 255, message = "최대 255자까지 입력 가능합니다.")
