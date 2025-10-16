@@ -72,7 +72,7 @@ public class AddressServiceTest {
 
         AddressResponse addressResponse = addressService.create(mockUser, addressRequest);
 
-        assertThat(addressResponse).isNotNull(); assertThat(addressResponse.isDefault()).isTrue();
+        assertThat(addressResponse).isNotNull(); assertThat(addressResponse.isDefaultAddress()).isTrue();
         verify(addressRepository, times(1)).save(any(Address.class));
     }
 
@@ -85,7 +85,7 @@ public class AddressServiceTest {
         AddressResponse addressResponse = addressService.getAddress(mockUser, mockAddressId);
 
         assertThat(addressResponse.getName()).isEqualTo("우리 집");
-        assertThat(addressResponse.isDefault()).isTrue();
+        assertThat(addressResponse.isDefaultAddress()).isTrue();
     }
 
     @Test
@@ -206,7 +206,7 @@ public class AddressServiceTest {
 
         AddressResponse response = addressService.changeDefault(mockUser, mockAddressId);
 
-        assertThat(response.isDefault()).isTrue();
+        assertThat(response.isDefaultAddress()).isTrue();
         verify(addressRepository, times(1)).findByUserAndDefaultAddressTrueAndDeletedFalse(mockUser);
         verify(addressRepository, times(1)).findByIdAndUserAndDeletedFalse(mockAddressId, mockUser);
     }

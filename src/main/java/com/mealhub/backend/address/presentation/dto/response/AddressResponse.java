@@ -20,7 +20,7 @@ public class AddressResponse {
 
     @JsonProperty("isDefault")
     @Schema(description = "기본 주소 여부", example = "true")
-    private boolean isDefault;
+    private boolean defaultAddress;
 
     @Schema(description = "도로명 주소", example = "서울특별시 강남구 테헤란로")
     private String address;
