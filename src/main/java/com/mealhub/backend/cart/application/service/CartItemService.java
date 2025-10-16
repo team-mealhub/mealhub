@@ -57,6 +57,8 @@ public class CartItemService {
 
     @Transactional(readOnly = true)
     public CartResponse getCartItems(Long userId, int page, int size) {
+        size = List.of(10, 30, 50).contains(size) ? size : 10;
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<CartItem> cartItems = cartItemRepository.findActiveCartItems(userId, CartItemStatus.CART, false, pageable);
 
