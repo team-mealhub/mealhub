@@ -32,4 +32,6 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
 
     // 주문 중복 여부 확인 + 미삭제건
     boolean existsByOrderIdAndDeletedAtIsNull(UUID orderId);
+
+    Page<ReviewEntity> findByUser_IdAndDeletedAtIsNull(Long userId, Pageable pageable);
 }

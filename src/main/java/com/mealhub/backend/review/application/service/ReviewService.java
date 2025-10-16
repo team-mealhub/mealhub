@@ -155,4 +155,14 @@ public class ReviewService {
         return ReviewResDto.from(review);
     }
 
+    @Transactional(readOnly = true)
+    public Page<ReviewListItemDto> getMyReviews(PageRequest pageReq, Long userId) {
+        if (userId == null || !userRepository.existsById(userId)) {
+            throw new UnAuthorizedException();
+        }
+        return reviewRepository
+                .findByUser_IdAndDeletedAtIsNull(userId, pageReq)
+                .map(ReviewListItemDto::from);
+    }
+
 }
