@@ -1,5 +1,6 @@
 package com.mealhub.backend.user.presentation.dto.request;
 
+import com.mealhub.backend.global.domain.validation.NoXss;
 import com.mealhub.backend.user.domain.enums.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -22,11 +23,15 @@ public class UserSignUpRequest {
     @Schema(description = "아이디", example = "test")
     private String userId;
 
+    @NoXss
+    @NotBlank(message = "이름은 필수입니다.")
     @Size(min = 2, max = 20)
     @Pattern(regexp = "^[가-힣a-zA-Z]+$")
     @Schema(description = "이름", example = "김테스트")
     private String username;
 
+    @NoXss
+    @NotBlank(message = "닉네임은 필수입니다.")
     @Size(min = 2, max = 20)
     @Pattern(regexp = "^[가-힣a-zA-Z0-9]+$")
     @Schema(description = "닉네임", example = "테스트")
