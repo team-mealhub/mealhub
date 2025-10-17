@@ -17,6 +17,9 @@ spring:
     open-in-view: false
     generate-ddl: true
 
+server:
+  forward-headers-strategy: native
+
 service:
   jwt:
     secret-key: ${jwt.secret-key}
