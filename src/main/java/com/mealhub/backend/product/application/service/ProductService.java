@@ -41,9 +41,9 @@ public class ProductService {
 
         Product product = Product.createProduct(
                 restaurant,
-                productRequest.getPName(),
-                productRequest.getPDescription(),
-                productRequest.getPPrice(),
+                productRequest.getName(),
+                productRequest.getDescription(),
+                productRequest.getPrice(),
                 true //  다섯 번째 인자 (pStatus) 추가
         );
 
@@ -90,9 +90,9 @@ public class ProductService {
         validateRestaurantOwner(product.getRestaurant(), userId);
 
         product.updateInfo(
-                productRequest.getPName(),
-                productRequest.getPDescription(),
-                productRequest.getPPrice()
+                productRequest.getName(),
+                productRequest.getDescription(),
+                productRequest.getPrice()
         );
 
         return ProductResponse.from(product);
