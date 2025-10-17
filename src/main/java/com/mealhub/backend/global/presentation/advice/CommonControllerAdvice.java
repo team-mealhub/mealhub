@@ -65,6 +65,51 @@ public class CommonControllerAdvice {
                 .body(new ErrorResponse(HttpStatus.FORBIDDEN, messageUtils.getMessage("Forbidden")));
     }
 
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointer(NullPointerException e) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String message = messageUtils.getMessage("NullPointer");
+
+        return ResponseEntity
+                .status(status)
+                .body(new ErrorResponse(status, message));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            org.springframework.dao.DataIntegrityViolationException e) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        String message;
+
+        // 원인 분석
+        Throwable cause = e.getCause();
+        if (cause instanceof org.hibernate.exception.ConstraintViolationException) {
+            org.hibernate.exception.ConstraintViolationException cve =
+                (org.hibernate.exception.ConstraintViolationException) cause;
+            String constraintName = cve.getConstraintName();
+
+            if (constraintName != null) {
+                if (constraintName.toLowerCase().contains("fk") ||
+                    constraintName.toLowerCase().contains("foreign")) {
+                    message = messageUtils.getMessage("DataIntegrity.ForeignKey");
+                } else if (constraintName.toLowerCase().contains("unique") ||
+                           constraintName.toLowerCase().contains("uk")) {
+                    message = messageUtils.getMessage("DataIntegrity.Unique");
+                } else {
+                    message = messageUtils.getMessage("DataIntegrity.Conflict");
+                }
+            } else {
+                message = messageUtils.getMessage("DataIntegrity.Conflict");
+            }
+        } else {
+            message = messageUtils.getMessage("DataIntegrity.Conflict");
+        }
+
+        return ResponseEntity
+                .status(status)
+                .body(new ErrorResponse(status, message));
+    }
+
     private Map<String, List<String>> convertErrorMessages(Map<String, List<String>> errorMessages) {
         return errorMessages.entrySet().stream()
                 .collect(Collectors.toMap(
