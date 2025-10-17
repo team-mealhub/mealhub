@@ -92,6 +92,5 @@ public class ReviewEntity extends BaseAuditEntity {
         this.setDeletedBy(deletedBy);
     }
 
-
 }
 

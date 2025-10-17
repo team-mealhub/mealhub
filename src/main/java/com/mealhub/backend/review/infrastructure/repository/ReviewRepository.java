@@ -29,6 +29,9 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
     Page<ReviewEntity> findVisibleForUser(@Param("restaurantId") UUID restaurantId,
                                           @Param("currentUserId") Long currentUserId,
                                           Pageable pageable);
+
     // 주문 중복 여부 확인 + 미삭제건
     boolean existsByOrderIdAndDeletedAtIsNull(UUID orderId);
+
+    Page<ReviewEntity> findByUser_IdAndDeletedAtIsNull(Long userId, Pageable pageable);
 }
