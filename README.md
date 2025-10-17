@@ -166,4 +166,5 @@ Mealhub는 음식점 검색부터 주문·결제, 그리고 신뢰 가능한 리
 <br />
 
 ## 🛠️ 프로젝트 아키텍쳐
+<img width="858" height="349" alt="mealhub drawio" src="https://github.com/user-attachments/assets/5b36d018-e335-4bcb-97d5-1786d5e413b6" />
 
