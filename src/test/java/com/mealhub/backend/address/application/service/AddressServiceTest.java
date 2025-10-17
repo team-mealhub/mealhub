@@ -1,0 +1,216 @@
+package com.mealhub.backend.address.application.service;
+
+import com.mealhub.backend.address.domain.entity.Address;
+import com.mealhub.backend.address.infrastructure.repository.AddressRepository;
+import com.mealhub.backend.address.presentation.dto.request.AddressRequest;
+import com.mealhub.backend.address.presentation.dto.response.AddressResponse;
+import com.mealhub.backend.global.domain.exception.NotFoundException;
+import com.mealhub.backend.user.domain.entity.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("AddressService 단위 테스트")
+public class AddressServiceTest {
+
+    @Mock
+    private AddressRepository addressRepository;
+
+    @InjectMocks
+    private AddressService addressService;
+
+    private User mockUser;
+
+    private Address mockAddress;
+
+    private final UUID mockAddressId = UUID.randomUUID();
+
+    @BeforeEach
+    void setUp() {
+        mockUser = new User();
+        ReflectionTestUtils.setField(mockUser, "id", 1L);
+        mockAddress = Address.builder()
+                .user(mockUser)
+                .name("우리 집")
+                .address("서울시 강남구")
+                .defaultAddress(true)
+                .build();
+    }
+
+    @Test
+    @DisplayName("주소 생성 성공")
+    void createAddress() {
+        AddressRequest addressRequest = new AddressRequest("새로운 집", true, "새 로도명", null, 127.0, 37.0, "메모");
+
+        Address address = Address.builder()
+                .user(mockUser)
+                .defaultAddress(true)
+                .build();
+
+        when(addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(any(User.class)))
+                .thenReturn(Optional.of(address));
+        when(addressRepository.save(any(Address.class))).thenReturn(mockAddress);
+
+        AddressResponse addressResponse = addressService.create(mockUser, addressRequest);
+
+        assertThat(addressResponse).isNotNull(); assertThat(addressResponse.isDefaultAddress()).isTrue();
+        verify(addressRepository, times(1)).save(any(Address.class));
+    }
+
+
+    @Test
+    @DisplayName("주소 단일 조회")
+    void getAddress() {
+        when(addressRepository.findByIdAndUserAndDeletedFalse(mockAddressId, mockUser)).thenReturn(Optional.of(mockAddress));
+
+        AddressResponse addressResponse = addressService.getAddress(mockUser, mockAddressId);
+
+        assertThat(addressResponse.getName()).isEqualTo("우리 집");
+        assertThat(addressResponse.isDefaultAddress()).isTrue();
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 ID 조회 시 예외 발생")
+    void getAddressByInvalidId_throwsException() {
+        when(addressRepository.findByIdAndUserAndDeletedFalse(any(UUID.class), any(User.class))).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> addressService.getAddress(mockUser, UUID.randomUUID()));
+    }
+
+    @Test
+    @DisplayName("주소 전체 페이징 조회")
+    void getAllAddresses() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Address> page = new PageImpl<>(Collections.singletonList(mockAddress));
+
+        when(addressRepository.findByUserAndDeletedFalse(eq(mockUser), any(Pageable.class))).thenReturn(page);
+
+        Page<AddressResponse> addresses = addressService.getAllAddresses(mockUser, null, pageable);
+
+        assertThat(addresses).hasSize(1);
+        assertThat(addresses.getContent().get(0).getName()).isEqualTo("우리 집");
+
+        verify(addressRepository, times(1)).findByUserAndDeletedFalse(eq(mockUser), any(Pageable.class));
+        verify(addressRepository, never()).searchAddress(any(), any(), any());
+
+
+    }
+
+    @Test
+    @DisplayName("주소 수정 성공")
+    void updateAddress() {
+        AddressRequest addressRequest = new AddressRequest("회사", false, "서울시 서초구", null, 127.1, 36.9, "출근용");
+        when(addressRepository.findByIdAndUserAndDeletedFalse(mockAddressId, mockUser)).thenReturn(Optional.of(mockAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(mockAddress);
+
+        AddressResponse addressResponse = addressService.updateAddress(mockUser, mockAddressId, addressRequest);
+
+        assertThat(addressResponse.getName()).isEqualTo("회사");
+        verify(addressRepository, times(1)).save(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("주소 삭제 성공")
+    void deleteAddress() {
+        UUID id = mockAddressId;
+
+        when(addressRepository.findByIdAndUserAndDeletedFalse(id, mockUser))
+                .thenReturn(Optional.of(mockAddress));
+        when(addressRepository.save(mockAddress)).thenReturn(mockAddress);
+
+        addressService.deleteAddress(mockUser, id);
+
+        assertThat(mockAddress.isDeleted()).isTrue();
+        assertThat(mockAddress.getDeletedBy()).isNotNull();
+        assertThat(mockAddress.getDeletedAt()).isNotNull();
+
+        verify(addressRepository, times(1)).save(mockAddress);
+
+    }
+
+    @Test
+    @DisplayName("주소 검색 성공 - 페이징 포함")
+    void searchAddresses() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Address> page = new PageImpl<>(Collections.singletonList(mockAddress));
+
+        when(addressRepository.searchAddress(eq(mockUser), eq("우리"), any(Pageable.class))).thenReturn(page);
+
+
+        Page<AddressResponse> result = addressService.getAllAddresses(mockUser, "우리", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("우리 집");
+
+        verify(addressRepository, times(1)).searchAddress(eq(mockUser), eq("우리"), any(Pageable.class));
+        verify(addressRepository, never()).findByUserAndDeletedFalse(any(), any());
+    }
+
+    @Test
+    @DisplayName("검색어가 없을 시 전체 조회")
+    void searchFallbackToAllAddresses() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Address> page = new PageImpl<>(Collections.singletonList(mockAddress));
+
+        when(addressRepository.findByUserAndDeletedFalse(eq(mockUser), any(Pageable.class))).thenReturn(page);
+
+        Page<AddressResponse> result = addressService.getAllAddresses(mockUser, "   ", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getName()).isEqualTo("우리 집");
+
+        verify(addressRepository, times(1)).findByUserAndDeletedFalse(eq(mockUser), any(Pageable.class));
+        verify(addressRepository, never()).searchAddress(any(), any(), any());
+
+    }
+
+    @Test
+    @DisplayName("검색 결과가 없을 시 empty")
+    void searchReturnEmpty() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Address> emptyPage = new PageImpl<>(Collections.emptyList());
+
+        when(addressRepository.searchAddress(eq(mockUser), eq("없는 값"), any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<AddressResponse> result = addressService.getAllAddresses(mockUser, "없는 값", pageable);
+
+        assertThat(result.getContent()).isEmpty();
+        verify(addressRepository, times(1)).searchAddress(eq(mockUser), eq("없는 값"), any(Pageable.class));
+    }
+
+
+    @Test
+    @DisplayName("기본 주소 변경 성공")
+    void changeDefaultAddress() {
+        when(addressRepository.findByIdAndUserAndDeletedFalse(mockAddressId, mockUser)).thenReturn(Optional.of(mockAddress));
+        when(addressRepository.findByUserAndDefaultAddressTrueAndDeletedFalse(mockUser)).thenReturn(Optional.of(mockAddress));
+
+        AddressResponse response = addressService.changeDefault(mockUser, mockAddressId);
+
+        assertThat(response.isDefaultAddress()).isTrue();
+        verify(addressRepository, times(1)).findByUserAndDefaultAddressTrueAndDeletedFalse(mockUser);
+        verify(addressRepository, times(1)).findByIdAndUserAndDeletedFalse(mockAddressId, mockUser);
+    }
+
+
+}
+
