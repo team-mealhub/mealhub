@@ -13,7 +13,6 @@ import com.mealhub.backend.restaurant.infrastructure.repository.RestaurantReposi
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantRequest;
 import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantResponse;
 import com.mealhub.backend.user.domain.entity.User;
-import com.mealhub.backend.user.domain.enums.UserRole;
 import com.mealhub.backend.user.infrastructure.repository.UserRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -60,10 +59,17 @@ public class RestaurantService {
                 .orElseThrow(() -> new BadRequestException("존재하지 않는 카테고리입니다."));
     }
 
-    // 가게 소유자 확인
-    private void verifyOwner(RestaurantEntity restaurantEntity, Long userId) {
-        if (!restaurantEntity.getUser().getId().equals(userId)) {
+    // 가게 소유자 확인 메서드
+    private void verifyOwner(RestaurantEntity restaurant, Long userId) {
+        if (!restaurant.getUser().getId().equals(userId)) {
             throw new ForbiddenException("본인의 가게만 수정할 수 있습니다.");
+        }
+    }
+
+    // soft delete 된 가게인지 확인 메서드
+    private void verifyNotDeleted(RestaurantEntity restaurant) {
+        if (restaurant.getDeletedBy() != null) {
+            throw new BadRequestException("존재하지 않는 가게입니다.");
         }
     }
 
@@ -100,22 +106,28 @@ public class RestaurantService {
     public RestaurantResponse getRestaurant(UUID restaurantId) {
 
         // 가게 존재 확인
-        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+        RestaurantEntity restaurant = findRestaurant(restaurantId);
 
-        return RestaurantResponse.from(restaurantEntity);
+        // soft delete 된 가게인지 확인
+        verifyNotDeleted(restaurant);
+
+        return RestaurantResponse.from(restaurant);
 
     }
 
     // 가게 수정 (OWNER, MANAGER 권한만 가능)
     @Transactional
     public RestaurantResponse updateRestaurant(UUID restaurantId,
-            RestaurantRequest restaurantRequest, Long userId, UserRole role) {
+            RestaurantRequest restaurantRequest, Long userId) {
 
         // 가게 존재 확인
-        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+        RestaurantEntity restaurant = findRestaurant(restaurantId);
+
+        // soft delete 된 가게인지 확인
+        verifyNotDeleted(restaurant);
 
         // 가게 소유자 확인
-        verifyOwner(restaurantEntity, userId);
+        verifyOwner(restaurant, userId);
 
         // 등록된 주소 확인 및 소유자 확인
         Address address = findAddressAndOwner(restaurantRequest,
@@ -125,23 +137,23 @@ public class RestaurantService {
         RestaurantCategoryEntity category = findCategory(restaurantRequest);
 
         // 가게 정보 수정
-        restaurantEntity.updateRestaurant(restaurantRequest, address, category);
+        restaurant.updateRestaurant(restaurantRequest, address, category);
 
-        return RestaurantResponse.from(restaurantEntity);
+        return RestaurantResponse.from(restaurant);
     }
 
     // 가게 삭제 (OWNER, MANAGER 권한만 가능)
     @Transactional
-    public void deleteRestaurant(UUID restaurantId, Long userId, UserRole role) {
+    public void deleteRestaurant(UUID restaurantId, Long userId) {
 
         // 가게 존재 확인
-        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+        RestaurantEntity restaurant = findRestaurant(restaurantId);
 
         // 가게 소유자 확인
-        verifyOwner(restaurantEntity, userId);
+        verifyOwner(restaurant, userId);
 
-        // 가게 삭제
-        restaurantRepository.delete(restaurantEntity);
+        // 가게 삭제 soft delete
+        restaurant.closure(userId);
     }
 
     // 가게 검색
@@ -198,14 +210,14 @@ public class RestaurantService {
             RestaurantRequest restaurantRequest, Long userId) {
 
         // 가게 존재 확인
-        RestaurantEntity restaurantEntity = findRestaurant(restaurantId);
+        RestaurantEntity restaurant = findRestaurant(restaurantId);
 
         // 가게 소유자 확인
-        verifyOwner(restaurantEntity, userId);
+        verifyOwner(restaurant, userId);
 
         // 가게 상태 변경
-        restaurantEntity.changeStatus(restaurantRequest.getIsOpen());
+        restaurant.changeStatus(restaurantRequest.getIsOpen());
 
-        return RestaurantResponse.from(restaurantEntity);
+        return RestaurantResponse.from(restaurant);
     }
 }

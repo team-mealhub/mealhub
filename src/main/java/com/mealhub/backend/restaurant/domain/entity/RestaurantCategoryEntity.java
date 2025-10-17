@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -43,5 +44,11 @@ public class RestaurantCategoryEntity extends BaseAuditEntity {
     // 가게 분류 수정 메서드
     public void updateCategory(RestaurantCategoryPatchRequest restaurantCategoryPatchRequest) {
         this.category = restaurantCategoryPatchRequest.getUpdatedCategory();
+    }
+
+    // 가게 분류 삭제 soft delete 메서드
+    public void closure(Long userId) {
+        this.deletedBy = userId;
+        this.deletedAt = LocalDateTime.now();
     }
 }

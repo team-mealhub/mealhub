@@ -26,6 +26,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
             SELECT r FROM RestaurantEntity r
             WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               AND r.deletedBy IS NULL
             ORDER BY r.createdAt ASC
             """)
     Page<RestaurantEntity> findByKeywordOrderByCreatedAtAsc(@Param("keyword") String keyword,
@@ -35,6 +36,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
             SELECT r FROM RestaurantEntity r
             WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               AND r.deletedBy IS NULL
             ORDER BY r.createdAt DESC
             """)
     Page<RestaurantEntity> findByKeywordOrderByCreatedAtDesc(@Param("keyword") String keyword,
@@ -44,6 +46,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
             SELECT r FROM RestaurantEntity r
             WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               AND r.deletedBy IS NULL
             ORDER BY r.updatedAt ASC
             """)
     Page<RestaurantEntity> findByKeywordOrderByUpdatedAtAtAsc(@Param("keyword") String keyword,
@@ -53,6 +56,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
             SELECT r FROM RestaurantEntity r
             WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                OR LOWER(r.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               AND r.deletedBy IS NULL
             ORDER BY r.updatedAt DESC
             """)
     Page<RestaurantEntity> findByKeywordOrderByUpdatedAtDesc(@Param("keyword") String keyword,
@@ -68,6 +72,7 @@ public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UU
 
     // 유저가 해당 레스토랑의 오너인지만 확인
     boolean existsByRestaurantIdAndUser_Id(UUID restaurantId, Long userId);
+
     /**
      * Find restaurant by ID with User (FETCH JOIN to prevent N+1)
      *

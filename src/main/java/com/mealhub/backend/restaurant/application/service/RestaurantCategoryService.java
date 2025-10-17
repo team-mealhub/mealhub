@@ -1,5 +1,6 @@
 package com.mealhub.backend.restaurant.application.service;
 
+import com.mealhub.backend.global.domain.exception.BadRequestException;
 import com.mealhub.backend.global.domain.exception.ForbiddenException;
 import com.mealhub.backend.global.domain.exception.NotFoundException;
 import com.mealhub.backend.restaurant.domain.entity.RestaurantCategoryEntity;
@@ -46,12 +47,12 @@ public class RestaurantCategoryService {
         verifyDuplicateCategory(restaurantCategoryRequest.getCategory());
 
         // 가게 분류 추가
-        RestaurantCategoryEntity restaurantCategory = RestaurantCategoryEntity.of(
+        RestaurantCategoryEntity category = RestaurantCategoryEntity.of(
                 restaurantCategoryRequest);
 
         // 가게 분류 저장
         RestaurantCategoryEntity save = restaurantCategoryRepository.save(
-                restaurantCategory);
+                category);
 
         return RestaurantCategoryResponse.from(save);
     }
@@ -60,7 +61,7 @@ public class RestaurantCategoryService {
     @Transactional(readOnly = true)
     public List<RestaurantCategoryResponse> getRestaurantCategories() {
 
-        List<RestaurantCategoryEntity> categories = restaurantCategoryRepository.findAll();
+        List<RestaurantCategoryEntity> categories = restaurantCategoryRepository.findAllCategories();
 
         return RestaurantCategoryResponse.fromList(categories);
     }
@@ -75,6 +76,11 @@ public class RestaurantCategoryService {
         // 등록된 가게 분류 확인
         RestaurantCategoryEntity category = findCategory(categoryId);
 
+        // soft delete 된 카테고리인지 확인
+        if (category.getDeletedBy() != null) {
+            throw new BadRequestException("존재하지 않는 카테고리입니다.");
+        }
+
         // 가게 분류 중복 확인
         verifyDuplicateCategory(restaurantCategoryPatchRequest.getUpdatedCategory());
 
@@ -86,18 +92,18 @@ public class RestaurantCategoryService {
 
     // 가게 분류 삭제 (MANAGER 권한 필요)
     @Transactional
-    public void deleteRestaurantCategory(UUID categoryId) {
+    public void deleteRestaurantCategory(UUID categoryId, Long userId) {
 
         // 등록된 가게 분류 확인
-        RestaurantCategoryEntity categoryEntity = findCategory(categoryId);
+        RestaurantCategoryEntity category = findCategory(categoryId);
 
         // 해당 카테고리를 사용하는 가게가 있는지 확인
-        List<RestaurantEntity> byCategory = restaurantRepository.findByCategory(categoryEntity);
+        List<RestaurantEntity> byCategory = restaurantRepository.findByCategory(category);
         if (!byCategory.isEmpty()) {
             throw new ForbiddenException("해당 카테고리를 사용하는 가게가 존재합니다.");
         }
 
-        // 가게 분류 삭제
-        restaurantCategoryRepository.delete(categoryEntity);
+        // 가게 분류 삭제 soft delete
+        category.closure(userId);
     }
 }

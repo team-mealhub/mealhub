@@ -4,7 +4,6 @@ import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl
 import com.mealhub.backend.restaurant.application.service.RestaurantService;
 import com.mealhub.backend.restaurant.presentation.dto.request.RestaurantRequest;
 import com.mealhub.backend.restaurant.presentation.dto.response.RestaurantResponse;
-import com.mealhub.backend.user.domain.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Restaurant Controller", description = "가게 도메인 API")
+@Tag(name = "가게 API", description = "가게 등록, 조회, 수정, 삭제, 검색, 상태 변경 기능 제공")
 @RestController
 @RequestMapping("/v1/restaurant")
 @RequiredArgsConstructor
@@ -37,9 +36,9 @@ public class RestaurantController {
     @ResponseStatus(HttpStatus.CREATED)
     public RestaurantResponse createRestaurant(
             @Valid @RequestBody RestaurantRequest restaurantRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
         return restaurantService.createRestaurant(restaurantRequest, userId);
     }
@@ -58,12 +57,11 @@ public class RestaurantController {
     public RestaurantResponse updateRestaurant(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody RestaurantRequest restaurantRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
-        return restaurantService.updateRestaurant(restaurantId, restaurantRequest, userId, role);
+        return restaurantService.updateRestaurant(restaurantId, restaurantRequest, userId);
     }
 
     @DeleteMapping("/{restaurantId}")
@@ -71,12 +69,11 @@ public class RestaurantController {
     @ResponseStatus(HttpStatus.OK)
     public void deleteRestaurant(
             @PathVariable UUID restaurantId,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        UserRole role = userDetailsImpl.getRole();
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
-        restaurantService.deleteRestaurant(restaurantId, userId, role);
+        restaurantService.deleteRestaurant(restaurantId, userId);
     }
 
     @GetMapping("/search")
@@ -98,9 +95,9 @@ public class RestaurantController {
     public RestaurantResponse changeRestaurantStatus(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody RestaurantRequest restaurantRequest,
-            @AuthenticationPrincipal UserDetailsImpl userDetailsImpl
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
-        Long userId = userDetailsImpl.getId();
+        Long userId = user.getId();
 
         return restaurantService.changeRestaurantStatus(restaurantId, restaurantRequest, userId);
     }
