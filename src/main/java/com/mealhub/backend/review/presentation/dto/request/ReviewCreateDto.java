@@ -26,7 +26,6 @@ public class ReviewCreateDto {
     @Schema(description = "리뷰 내용(최대 500자)", example = "배달 빠르고 맛있어요.")
     private String comment;
 
-    @NotNull(message = "공개 여부는 필수입니다.")
-    @Schema(description = "사장님만 볼 수 있는 비공개 여부", example = "false")
+    @Schema(description = "사장님만 볼 수 있는 비공개 여부", example = "false", defaultValue = "false")
     private Boolean ownerOnly;
 }
