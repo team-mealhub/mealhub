@@ -46,7 +46,6 @@ jobs:
           host: ${{ secrets.REMOTE_IP }} # 인스턴스 IP
           username: ${{ secrets.REMOTE_USER }} # 우분투 아이디
           password: ${{ secrets.REMOTE_PASSWORD }}
-
           port: ${{ secrets.REMOTE_SSH_PORT }} # 접속포트
           script: | # 실행할 스크립트
             sh deploy.sh
