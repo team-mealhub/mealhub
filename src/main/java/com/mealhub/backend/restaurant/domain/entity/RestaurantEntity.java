@@ -71,7 +71,7 @@ public class RestaurantEntity extends BaseAuditEntity {
                 .name(restaurantRequest.getName())
                 .description(restaurantRequest.getDescription())
                 .category(category)
-                .isOpen(false)
+                .isOpen(restaurantRequest.getIsOpen())
                 .build();
     }
 
