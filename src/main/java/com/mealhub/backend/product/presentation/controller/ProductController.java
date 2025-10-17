@@ -4,7 +4,6 @@ import com.mealhub.backend.global.infrastructure.config.security.UserDetailsImpl
 import com.mealhub.backend.product.application.service.ProductService;
 import com.mealhub.backend.product.presentation.dto.request.ProductRequest;
 import com.mealhub.backend.product.presentation.dto.response.ProductResponse;
-import com.mealhub.backend.user.domain.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,11 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "상품 관리 API", description = "상품 등록, 조회, 검색, 수정, 삭제 및 숨김 처리 기능.") //
@@ -34,7 +30,7 @@ public class ProductController {
      //1. 상품 생성 (Create)
     @Operation(
             summary = "상품 신규 등록",
-            description = "새로운 상품 정보를 시스템에 등록합니다. 가게 소유자만 가능합니다."
+            description = "새로운 상품 정보를 시스템에 등록합니다. 가게 소유자 또는 매니저만 가능합니다."
     )
     @PreAuthorize("hasRole('OWNER') or hasRole('MANAGER')")
     @PostMapping
@@ -53,8 +49,9 @@ public class ProductController {
             description = "특정 상품 ID를 이용해 해당 상품의 상세 정보를 조회합니다."
     )
     @GetMapping("/{pId}")
-    public ResponseEntity<ProductResponse> get(@PathVariable UUID pId) {
-        ProductResponse productResponse = productservice.getProduct(pId);
+    public ResponseEntity<ProductResponse> get(@PathVariable UUID pId, @RequestParam(name = "status", required = false) Boolean status) {
+        status = status == null ? true : status;
+        ProductResponse productResponse = productservice.getProduct(pId,status);
         return ResponseEntity.ok(productResponse);
     }
 
@@ -103,7 +100,7 @@ public class ProductController {
      //5. 상품 숨김 처리 (Hide)
 
     @Operation(
-            summary = "상품 숨김/판매 중지 처리",
+            summary = "상품 숨김/보임 처리",
             description = "특정 상품을 숨김 상태로 변경하여 음식을 보여주거나 숨김처리를 합니다."
     )
     @PatchMapping("/{pId}/hide")
@@ -119,15 +116,15 @@ public class ProductController {
      // 6. 상품 삭제 (Delete)
 
     @Operation(
-            summary = "상품 영구 삭제",
+            summary = "특정 상품 삭제",
             description = "특정 상품을 삭제합니다."
     )
     @PreAuthorize("hasRole('OWNER') or hasRole('MANAGER')")
     @DeleteMapping("/{pId}")
-    public ResponseEntity<Void> delete(
+    public void delete(
             @PathVariable UUID pId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         productservice.deleteProduct(pId,userDetails.getId());
-        return ResponseEntity.noContent().build();
+
     }
 }
