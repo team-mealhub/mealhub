@@ -1,5 +1,6 @@
 package com.mealhub.backend.order.presentation.dto.request;
 
+import com.mealhub.backend.global.domain.validation.NoXss;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +21,7 @@ public class OrderCreateRequest {
     @NotNull
     private UUID aId;
 
+    @NoXss
     @Schema(description = "주문 요청사항", example = "문 앞에 놓아주세요", required = false)
     private String oRequirements;
 

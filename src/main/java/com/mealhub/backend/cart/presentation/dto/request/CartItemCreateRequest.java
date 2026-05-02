@@ -24,10 +24,11 @@ public class CartItemCreateRequest {
     private UUID productId;
 
     @JsonProperty("ct_quantity")
+    @NotNull(message = "수량은 필수입니다.")
     @Min(1)
     @Max(1000)
     @Schema(description = "장바구니 수량", example = "1")
-    private int quantity;
+    private Integer quantity;
 
     @JsonProperty("ct_status")
     @NotNull
